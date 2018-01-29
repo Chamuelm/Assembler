@@ -4,7 +4,9 @@
 #define MAX_INSTRUCTIONS 256
 
 #define MAX_LABEL_LEN 30
-
+typedef enum{
+	command,regNum,address,number
+}nType;
 typedef struct{
 	char name[MAX_LABEL_LEN];			/* Label name */
 	int address;									/* Address in memory */
@@ -22,4 +24,6 @@ typedef struct{
 	int directNum;								/*Number in direct addressing*/
 	int destAdd;								/*Destination Address*/
 	int scrAdd;									/*Source Address*/
+	int structAdd;								/*Struct address*/
+	int structField;							/*Struct field number*/
 } instNode;
