@@ -17,4 +17,9 @@ typedef struct{
 	int srcAddType;								/* Source operand addressing type */
 	int destAddType;							/* Destination operand addressing type */
 	int encodingType;							/* Encoding type */
+	int srcReg;                                 /*Source registry number */
+	int destReg;								/*Destination registry number*/
+	int directNum;								/*Number in direct addressing*/
+	int destAdd;								/*Destination Address*/
+	int scrAdd;									/*Source Address*/
 } instNode;
