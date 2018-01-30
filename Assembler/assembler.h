@@ -16,7 +16,23 @@
  *
  */
 enum InstructionType{COMMAND, REG_NUM, LABEL_ADDRESS, NUMBER, STRUCT_ITEM_NUM};
-
+/*
+ * List of addressing types used to indicate the addressing type of
+ * the current instruction.
+ * addressing types:
+ * 0 	IMMEDIATEADD		immediate addressing e.g: move #-1,r2
+ * 1 	DIRECTADD			direct addressing    e.g: x: .data 23(definition); dec x(instruction)
+ * 2 	ADDACCESSREC		addressing access record e.g: ‫‪s: .struct 9,"abcd"(definition);add #4,s.1 (instruction)‬‬
+ * 3 	DIRECTREGADD		direct registry addressing e.g: move r1,r2
+ *
+ */
+enum AddressingType{IMMEDIATEADD, DIRECTADD, ADDACCESSREC, DIRECTREGADD };
+/*
+ *List of cpu commands.
+ *show all the commands names in the order of the opcodes.
+ *
+ */
+enum CpuCommands{MOV, CMP, ADD, SUB, NOT, CLR, LEA, INC,DEC, JMP, BNE, RED, PRN, JSR, RTS, STOP};
 /* Holds label entry for labels table */
 typedef struct{
 	char name[MAX_LABEL_LEN];					/* Label name */
@@ -49,3 +65,7 @@ typedef struct{
 	int val;								/* Number in direct addressing */
 
 }instNode;
+/**/
+typedef struct{
+
+}dataNode;
