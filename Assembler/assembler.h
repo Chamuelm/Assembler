@@ -59,13 +59,21 @@ typedef struct{
 	 * COMMAND 				not in use
 	 * REG_NUM				not in use
 	 * LABEL_ADDRESS		contains the label address
-	 * NUMNER				contains the number
+	 * NUMBER				contains the number
 	 * STRUCT_ITEM_NUM	 	contains the item number (1 or 2)
 	 */
 	int val;								/* Number in direct addressing */
 
 }instNode;
-/**/
-typedef struct{
 
+/* Holds data entry for data table*/
+typedef struct{
+	int data;   								/*data entry*/
+	int encodingType;							/*Encoding type*/
 }dataNode;
+/* Holds entry instruction*/
+typedef struct{
+   char labelName;								/*The name of the label */
+	int labelAdd;  								/*The label address*/
+
+}entryNode;
