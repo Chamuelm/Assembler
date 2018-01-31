@@ -15,8 +15,8 @@
  * 4	STRUCT_ITEM_NUM		Contains integer filled with 1 or 2 for desired struct field
  *
  */
-
 enum InstructionType{COMMAND, REG_NUM, LABEL_ADDRESS, NUMBER, STRUCT_ITEM_NUM};
+
 
 /*
  * List of addressing types used to indicate the addressing type of
@@ -28,16 +28,17 @@ enum InstructionType{COMMAND, REG_NUM, LABEL_ADDRESS, NUMBER, STRUCT_ITEM_NUM};
  * 3 	DIRECTREGADD		direct registry addressing e.g: move r1,r2
  *
  */
-
 enum AddressingType{IMMEDIATEADD, DIRECTADD, ADDACCESSREC, DIRECTREGADD };
+
 
 /*
  *List of cpu commands.
  *show all the commands names in the order of the opcodes.
  *
  */
-
 enum CpuCommands{MOV, CMP, ADD, SUB, NOT, CLR, LEA, INC,DEC, JMP, BNE, RED, PRN, JSR, RTS, STOP};
+
+
 /* Holds label entry for labels table */
 typedef struct{
 	char name[MAX_LABEL_LEN];					/* Label name */
@@ -46,44 +47,33 @@ typedef struct{
 	unsigned int isInst : 1;					/* Is assigned to instruction */
 }labelNode;
 
-
-/*
- Holds instruction entry for instructions table
+/* Holds instruction entry for instructions table */
 typedef struct{
-	int type;									 Holds current instruction type
-	int encodingType;							 Encoding type
+	int type;									/* Holds current instruction type */
+	int encodingType;							/* Encoding type */
 
-	 Instruction type is COMMAND:
-	int operation;								 Operation name
-	int srcAddType;								 Source operand addressing type
-	int destAddType;							 Destination operand addressing type
+	/* Instruction type is COMMAND: */
+	int operation;								/* Operation name */
+	int srcAddType;								/* Source operand addressing type */
+	int destAddType;							/* Destination operand addressing type */
 
-	 Instruction type is REG_NUM
-	int srcReg;                                  Source registry number (1-8)
-	int destReg;								 Destination registry number (1-8)
+	/* Instruction type is REG_NUM */
+	int srcReg;                                 /* Source registry number (1-8) */
+	int destReg;								/* Destination registry number (1-8) */
 
-	 For use by instruction type:
+	/* For use by instruction type:
 	 * COMMAND 				not in use
 	 * REG_NUM				not in use
 	 * LABEL_ADDRESS		contains the label address
 	 * NUMBER				contains the number
 	 * STRUCT_ITEM_NUM	 	contains the item number (1 or 2)
-
-	int val;								 Number in direct addressing
+	 */
+	int val;								/* Number in direct addressing */
 
 }instNode;
 
-
- Holds data entry for data table
+/* Holds data entry for data table*/
 typedef struct{
-	int data;   								data entry
-	int encodingType;							Encoding type
-}dataNode;*/
-
-
-/* Holds entry instruction*/
-typedef struct{
-   char labelName;								/*The name of the label */
-	int labelAdd;  								/*The label address*/
-
-}entryNode;
+	int data;   								/*data entry*/
+	int encodingType;							/*Encoding type*/
+}dataNode;
