@@ -7,6 +7,11 @@ int buffIndex;
 
 /* Labels array */
 labelNode labels[MAX_LABELS];
-
+/*int array */
 /* Instructions array */
-instNode insts[MAX_INSTRUCTIONS];
+int instArr[MAX_INSTRUCTIONS];
+
+int data[MAX_DATA_LEN];
+
+
+
