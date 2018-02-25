@@ -1,45 +1,49 @@
-/* This file is the first read of the code to parse it to machine code
- * It save the data to data structures and check for errors
- */
+#include "assembler.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-/* Reset the IC and DC counters
- * IC  Instruction-Counter
- * DC  Data-Counter
- * L   Number of words in the current line
- * */
-int IC = 0;
-int DC = 0;
-int L = 0;
+/* firstPass: receive file pointer to process and pointers for
+ * data storage as described.*/
+int firstPass(FILE *fp,
+						int *instC,							/* Instructions counter for return */
+						int *dataC,							/* Data counter for return */
+						int *instArr,						/* Instructions array */
+						label *labelsArr,				/* Labels array */
+						char **entriesArr)			/* Entries array */
+{
+	char word[MAX_LINE_LEN], symbolName[MAX_LINE_LEN];
+	char line[MAX_LINE_LEN];									/* Line buffer */
+	int buffIndex;														/* Line index */
+	int IC = 0, DC = 0;				/* Instructions and data counters
+	 	 	 	 	 	 	 	 	 	 	 	 	 	 * Easy to use it then received pointers */
+	int lineC = 0;						/* Line counter */
+	int isSymbol;
 
-/* 1. Create function that read the next line from the source code: readLine();
- *
- * 2. check if the source code is over if it's over check for errors (maybe create a function for checking error?)
- *
- * 3. if found errors stop and print the errors.
- *
- * 4. if the source code not over check if in the line you have a symbol if you have a symbol turn on the flag of
- *    thereIsASymbol (1 or 0 ).
- *
- * 5 .if you don't have a symbol check for instruction type (.data, .string, .struct).
- *
- * 6. f there is not  instruction type check for .extern or .entry instructions. if yes enter the symbol the the
- * 	  symbol table with mark up for external type.
- *
- * 7. go back to 2.
- *
- * 8. if there's not .extern or .entry instructions check if the thereIsASymbol is on and enter the symbol to the
- *    symbol table with mark up for code type. is value will be the IC.
- *    (if the symbol is in the table already you should declare an error).
- *
- * 9.  search if the command name is exist in the opcode table, if not declare an error.
- *
- * 10. check the structure instruction and calculate L.
- *
- * 11. build the binary code of the first instruction.
- *
- * 12.  update IC + L = IC.
- *
- * 13. go back to 2.
- *
- * 14. update in symbol table the value for the data symbols by adding the final value of IC.
- * */
+	/* Proccessing each line */
+	while(line = fgets(line, MAX_LINE_LEN, fp))
+	{
+		lineC++;
+		isSymbol = 0;
+		if (line[0] == '\0' || line[0] == '\n')		/* If empty line */
+			continue;
+
+		if(sscanf(line, "%s", word))		/* Reads first word in line */
+		{
+			if (word[strlen(word)-1] == ':')
+			{
+				strcpy(symbolName, word);
+				if (checkSymbol(symbolName))			/* Check if valid name and not exist */
+					isSymbol = 1;
+
+				/* Receive next word in command if symbol */
+				if (!sscanf(line, "%s", word))
+				{					/* Empty line after label */
+					lerror("Empty label", lineC);
+					continue;
+				}
+			}
+
+		}
+	}
+}

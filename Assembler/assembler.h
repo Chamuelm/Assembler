@@ -1,3 +1,4 @@
+#include <stdio.h>
 
 #define MAX_LINE_LEN 81							/* Maximum length of line in code includes '\n' */
 #define MAX_LABELS 256							/* Maximum number of labels in one file */
@@ -40,11 +41,11 @@ enum CPUCommands{MOV, CMP, ADD, SUB, NOT, CLR, LEA, INC,DEC, JMP, BNE, RED, PRN,
 
 /* Holds label entry for labels table */
 typedef struct{
-	char name[MAX_LABEL_LEN];					/* Label name */
-	int address;								/* Address in memory */
-	unsigned int isExternal : 1;				/* Is assigned to external variable */
-	unsigned int isInst : 1;					/* Is assigned to instruction */
-}labelNode;
+	char name[MAX_LABEL_LEN];				/* Label name */
+	int address;										/* Address in memory */
+	unsigned int isExternal : 1;		/* Is assigned to external variable */
+	unsigned int isInst : 1;				/* Is assigned to instruction */
+}label;
 
 /* Holds instruction entry for instructions table
 typedef struct{
@@ -78,3 +79,6 @@ typedef struct{
 }dataNode;*/
 
 
+/* #### Function declerations #### */
+/* ########### main.c ########### */
+void assembler(char *fileName, FILE *fp);
