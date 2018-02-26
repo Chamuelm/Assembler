@@ -5,6 +5,9 @@
 #define MAX_DATA  1000		   				/* Maximum number of data in one file */
 #define MAX_LABEL_LEN 30						/* Maximum length of label */
 
+#define FALSE_RETURN -1							/* Return value is false or invalid */
+#define TRUE_RETURN		1							/* Return value is true or valid */
+
 
 /******************** Main structure global variables ***********************/
 #ifndef MAIN_DEF
@@ -41,15 +44,23 @@ enum instructionType {
  * List of addressing types used to indicate the addressing type of
  * the current instruction.
  * addressing types:
- * 0 	IMMEDIATE				Immediate addressing
- * 1 	DIRECT					Direct addressing
- * 2 	ACCESS_STRUCT		Struct ‬‬
- * 3 	REG	direct 			Register addressing
- * 4	EMPTY
+ * 1 		IMMEDIATE				Immediate addressing
+ * 2 		DIRECT					Direct addressing
+ * 4 		STRUCT_ADD			Struct ‬‬
+ * 8 		REGISTER	 			Register addressing
+ * 16		EMPTY
  *
  */
 enum addressingType {
-	IMMEDIATE, DIRECT, ACCESS_STRUCT, REG, EMPTY
+	IMMEDIATE = 1, DIRECT = 2, STRUCT_ADD = 4, REGISTER = 8, EMPTY = 16
+};
+
+/* Allowed addressing types to use in commands struct */ 
+enum allowedAddTypes {
+	NONE 			= 0;
+	ALL_ADD		=	IMMEDIATE|DIRECT|STRUCT_ADD|REGISTER;
+	LABEL_ADD = DIRECT|STRUCT_ADD;
+	REG_ADD		=	DIRECT|STRUCT_ADD|REGISTER;
 };
 
 /* Types of lines in source code */
@@ -68,6 +79,8 @@ typedef struct {
 	char *name;											/* Command name */
 	unsigned int opcode : 4;				/* Opcode */
 	unsigned int operatorsNum : 2;	/* Number of operators */
+	unsigned int allowedSrc : 5;		/* Allowed source addresing type */
+	unsigned int allowedDest : 5;		/* Allowed destination addresing type */
 } command;
 
 /* Holds label entry for labels table */
@@ -90,22 +103,23 @@ typedef struct {
 
 /* CPU commands ordered by opcodes. */
 const command CPUCommands[] = {
-		{"mov",		0,	2},
-		{"cmp",		1,	2},
-		{"add",		2,	2},
-		{"sub",		3,	2},
-		{"not",		4,	1},
-		{"clr",		5,	1},
-		{"lea",		6,	2},
-		{"inc",		7,	1},
-		{"dec", 	8,	1},
-		{"jmp", 	9,	1},
-		{"bne", 	10,	1},
-		{"red",		11,	1},
-		{"prn",		12,	1},
-		{"jsr",		13,	1},
-		{"rts",		14,	0},
-		{"stop",	15,	0}
+/* 	Name  Opcode  Operators  SrcAdd	 		 DestAdd	  */
+		{"mov",		0,		2,			ALL_ADD,		REG_ADD},
+		{"cmp",		1,		2,			ALL_ADD,		ALL_ADD},
+		{"add",		2,		2,			ALL_ADD,		REG_ADD},
+		{"sub",		3,		2,			ALL_ADD,		REG_ADD},
+		{"not",		4,		1,			NONE,				REG_ADD},
+		{"clr",		5,		1,			NONE,				REG_ADD},
+		{"lea",		6,		2,			LABEL_ADD,	REG_ADD},
+		{"inc",		7,		1,			NONE,				REG_ADD},
+		{"dec", 	8,		1,			NONE,				REG_ADD},
+		{"jmp", 	9,		1,			NONE,				REG_ADD},
+		{"bne", 	10,		1,			NONE,				REG_ADD},
+		{"red",		11,		1,			NONE,				REG_ADD},
+		{"prn",		12,		1,			NONE,				ALL_ADD},
+		{"jsr",		13,		1,			NONE,				REG_ADD},
+		{"rts",		14,		0,			NONE,				NONE},
+		{"stop",	15,		0,			NONE,				NONE}
 };
 
 /* Flags for use in line read functions */

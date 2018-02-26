@@ -78,6 +78,59 @@ void skipWhite(line *l)
 			l->i++;
 }
 
+/* 
+ * sSkipWhite: Recieve string s and pointer to index i
+ * and increment i to the first non-white space in s
+ * Assumes i is in valid range of s
+ */
+void sSkipWhite(char *s, int *i)
+{
+	while (s[*i] == '\t' || s[*i] == ' ')
+		(*i)++;
+}
+
+/* 
+ * dismiss White:	Receive string and removes white spaces
+ * before and at the end of the string
+ */
+char *dismissWhite(char *s)
+{
+	int n,i,j;
+	char *new;
+	
+	n = strlen(s);
+	while (n)
+	{							/* Decrement last char if it is white */
+		if (s[n-1] == ' ' || s[n-1] == '\t')
+			n--;
+		else
+			break;
+	}
+		
+	i = 0;
+	while(i < n)
+	{							/* Increment i to skip whitespaces */
+		if (s[i] == ' ' || s[i] == '\t')
+			i++;
+		else
+			break;
+	}
+	
+	new = malloc(sizeof(char)*(n-i+1));
+	if (!new)
+	{
+		printf(stderr, "Error: Not enough memory. Exiting...\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	/* Copy relevant string to return */
+	for (j=0; j<(n-1); j++)
+		new[j] = s[i+j];
+	new[j] = '\0';
+	
+	return new;
+}
+
 /* checkEmpty: Check if line is empty and proceed to first non-blank char
  * returns 1 if empty line otherwise returns 0 */
 int checkEmpty(line *l)
@@ -178,3 +231,31 @@ int isSymbol(line *l)
 {
 	return l->flags&VALID_SYM;
 }
+
+/* 
+ * getRegisterNum:	Returns register number if is register
+ * otherwize returns  FALSE_RETURN;
+ */
+int getRegisterNum(char *p)
+{
+	int n, num;
+	char *name;
+	
+	name = dismissWhite(p);		/* Remove white spaces if exists (Dynamic alloc)*/
+	n = strlen(name);					/* Get name length */
+	
+	if (n != 2)								/* If length is not 2 it is not register name */
+		num = FALSE_RETURN;
+	else if (name[0] != 'r')	/* First char must be 'r' */
+		num = FALSE_RETURN;
+	else if (name[1] > '7' || name[1] < '0')	/* Second char must be digit 0-7 */
+		num = FALSE_RETURN;
+	else
+		num = name[1]-'0';			/* Find reg number */
+	
+	free(name);								/* Memory release */
+	
+	return num;
+}
+
+
