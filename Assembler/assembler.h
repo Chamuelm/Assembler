@@ -1,10 +1,10 @@
 #ifndef MAX_LINE_LEN
 /************************* Constants definitions ****************************/
 #define MAX_LINE_LEN 81							/* Maximum length of line in code includes '\n' */
-#define MAX_LABELS 256							/* Maximum number of labels in one file */
 #define MAX_INSTRUCTIONS 1000				/* Maximum number of instructions in one file */
+#define MAX_DATA  1000		   				/* Maximum number of data in one file */
 #define MAX_LABEL_LEN 30						/* Maximum length of label */
-#define MAX_DATA_LEN     1000		    /* Maximum length of data */
+
 
 /******************** Main structure global variables ***********************/
 #ifndef MAIN_DEF
@@ -41,15 +41,27 @@ enum instructionType {
  * List of addressing types used to indicate the addressing type of
  * the current instruction.
  * addressing types:
- * 0 	IMMEDIATE		immediate addressing
- * 1 	DIRECT			direct addressing
- * 2 	ACCESS_STRUCT	addressing access struct ‬‬
- * 3 	REG	direct 		register addressing
+ * 0 	IMMEDIATE				Immediate addressing
+ * 1 	DIRECT					Direct addressing
+ * 2 	ACCESS_STRUCT		Struct ‬‬
+ * 3 	REG	direct 			Register addressing
+ * 4	EMPTY
  *
  */
 enum addressingType {
-	IMMEDIATE, DIRECT, ACCESS_STRUCT, REG
+	IMMEDIATE, DIRECT, ACCESS_STRUCT, REG, EMPTY
 };
+
+/* Types of lines in source code */
+enum lineTypes {
+	COMMAND, DATA, STRING, STRUCT, ENTRY, EXTERN, UNKNOWN
+};
+
+/* Contains instructions operand data */
+typedef struct {
+	char data[MAX_LINE_LEN];
+	enum addressingType type;
+} operand;
 
 /* CPU command struct */
 typedef struct {
@@ -57,6 +69,24 @@ typedef struct {
 	unsigned int opcode : 4;				/* Opcode */
 	unsigned int operatorsNum : 2;	/* Number of operators */
 } command;
+
+/* Holds label entry for labels table */
+typedef struct {
+	char name[MAX_LABEL_LEN];		/* Label name */
+	int address;								/* Address in memory */
+	unsigned int isExternal :1; /* Is assigned to external variable */
+	unsigned int isInst :1; 		/* Is assigned to instruction */
+} label;
+
+typedef struct {
+	char data[MAX_LINE_LEN];		/* Contains actual line */
+	unsigned int flags : 6;							/* Flags as described below */
+	int lineNum;								/* Line number in file */
+	int i;											/* Line index */
+	int symbolAddress;					/* Holds address if symbol */
+	enum lineTypes lineType;		/* Line type */
+	int lastRead;								/* Length of last word read */
+} line;
 
 /* CPU commands ordered by opcodes. */
 const command CPUCommands[] = {
@@ -78,23 +108,13 @@ const command CPUCommands[] = {
 		{"stop",	15,	0}
 };
 
-/* Holds label entry for labels table */
-typedef struct {
-	char name[MAX_LABEL_LEN]; /* Label name */
-	int address; /* Address in memory */
-	unsigned int isExternal :1; /* Is assigned to external variable */
-	unsigned int isInst :1; /* Is assigned to instruction */
-} label;
-
-/* Source code line types */
-enum lineTypes {
-	COMMAND, DATA, STRING, STRUCT, ENTRY, EXTERN
-};
-
 /* Flags for use in line read functions */
 #define COMMA					1			/* Received comma at end of word */
 #define EOL						2			/* Received '\n' at end of word */
-#define WORD_TOO_LONG	4			/* Word is too long */
+#define VALID_SYM			4			/* Symbol is valid */
+#define SYMBOL				8			/* Line have symbol */
+#define INVALID_SYM		16		/* Symbol is invalid */
+#define LINE_TOO_LONG	32		/* Line is too long */
 
 /* Holds instruction entry for instructions table
  typedef struct{

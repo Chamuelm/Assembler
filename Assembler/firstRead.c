@@ -5,102 +5,152 @@
 
 /* firstPass: proccess first pass on current active file */
 int firstPass() {
-	char word[MAX_LABEL_LEN];				/* Temp word string */
-	char symbolName[MAX_LABEL_LEN];	/* Holds current symbol name */
-	char line[MAX_LINE_LEN];				/* Line buffer */
-	int lineIndex;									/* Line buffer index */	
+	int wordCount;
+	line currLine;
 	int lineC = 0;									/* Line counter */
-	enum lineTypes lineType;				/* Line type */
-	int symbolAddress;							/* Symbol address */
+	char word[MAX_LINE_LEN];				/* Temp word string *
+	/*
+	char line[MAX_LINE_LEN];				/* Line buffer *
+	int lineIndex;									/* Line buffer index *
+	enum lineTypes lineType;				/* Line type *
+	int symbolAddress;							/* Symbol address *
 	int flags, i;
+	*/
 
-	/* Proccessing each line */
-	while (line = fgets(line, MAX_LINE_LEN, fp)) {
+	/* Processing each line */
+	while (fgets(currLine.line, MAX_LINE_LEN, fp)) {
 		lineC++;
-		lineIndex = symbolAddress = flags = 0;	/* Vars init */
+		lineInit(&currLine, lineC);
 
-		skipWhite(line, &lineIndex);	/* Skip white spaces before line */
-		if (line[0] == '\0' || line[0] == '\n') /* If empty line */
+		/* Proceed to first non-blank char and check if empty line */
+		if (checkEmpty(&currLine))
 			continue;
 
-		i = getWord(line, &lineIndex, word ,&flags); /* Reads first word in line */
+		wordCount = (getWord(&currLine, word); /* Reads first word in line */
+		if (currLine.flags&LINE_TOO_LONG)
+			lerror("Line too long.", currLine.lineNum);
+		if(isLabel(&currLine, word, &wordCount))
+		{												/* If first word is label check label for errors
+														 * and get line actual first word */
+			checkLabel(&currLine, word, wordCount);
+
+			/* Check if there is more words in line */
+			if (isEOL(&currLine))
+			{
+				lerror("Label is not attached to instruction or data", currLine.lineNum);
+				currLine.flags |= INVALID_SYM;
+				continue;
+			}
+			getWord(&currLine, word);
+
+			/* Remove symbol flag if invalid */
+			if (currLine.flags&INVALID_SYM)
+				currLine.flags |= VALID_SYM;
+		}
 		 
-		/* Input checks */
-		if (flags & WORD_TOO_LONG)	/* Word too long */
-		{
-			lerror("Word too long", lineC);
-			continue;
-		}
-		
-		if (word[i-1] == ':')		/* Received label */
-		{
-			if (i == 1)		/* Error - No label name received */
-			{
-				lerror("Empty label", lineC);
-				continue;
-			}
-			strcpy(symbolName, word);
-
-			/* Get next word in line */
-			if (!getWord(line, &lineIndex, word ,&flags))
-			{
-				lerror("Empty line after label", lineC);
-				continue;
-			}
-		}
-
 		lineType = getLineType(word);
 		switch (lineType) {
 		case COMMAND:
-			if (isSymbol)
-				symbolAddress = IC;
-			procCommand(word, line, lineIndex, lineC);
+			if (isSymbol(currLine))
+				currLine.symbolAddress = IC;
+			procCommand(&currLine, word);
 			break;
 		case DATA:
-			if (isSymbol)
-				symbolAddress = DC;
-			procData(word, line);
+			if (isSymbol(currLine))
+				currLine.symbolAddress = DC;
+			procData(&currLine, word);
 			break;
 		case STRING:
-			if (isSymbol)
-				symbolAddress = DC;
-			procString(word, line);
+			if (isSymbol(currLine))
+				currLine.symbolAddress = DC;
+			procString(&currLine, word);
 			break;
 		case STRUCT:
-			if (isSymbol)
-				symbolAddress = DC;
-			procStruct(word, line);
+			if (isSymbol(currLine))
+				currLine.symbolAddress = DC;
+			procStruct(&currLine, word);
 			break;
 		case ENTRY:
-			procEntry(word, line);
+			procEntry(&currLine, word);
 			break;
 		case EXTERN:
-			procExtern(word, line);
+			procExtern(&currLine, word);
 			break;
 		}
 
-		if (checkLabel(labelName, lineC)) /* Validity check - errors inside the function */
+		if (checkLabel(symbolName, lineC)) /* Validity check - errors inside the function */
 			addSymbol(symbolName, symbolAddress, lineType);
 	}
 }
 }
 
-/* procCommand: proccess command line */
-void procCommand(char *commName, char *line, &lineIndex, lineNumber)
+/* procCommand: process command line */
+void procCommand(line *l, char *cmdName)
 {
-	command c;
+	command *c;
 	operand o1, o2;
 
-	c = checkCommand(commName);
+	c = checkCommand(cmdName);
+	if (c == NULL)
+	{
+		lerror("Unknown command", l->lineNum);
+		return;
+	}
+
+	if (!getOperands(l, &o1, &o2))
+		return;				/* Finish process if operands are not valid */
+
 	if (c->operatorsNum == 2)
 	{
-		o1 = getOperand(line, lineIndex);
-		o2 = getOperand(line, lineIndex);
+
+
 	}
 }
 
 /* getOperand: received line and index in line and return the next operand */
-operand *getOperand(char *line, int *lineIndex)
+int getOperands(line *l, operand *o1, operand *o2)
 {
-	char word[MAX]
+	char op1[MAX_LINE_LEN], op2[MAX_LINE_LEN], *c;
+	int isValid = 1;
+	op1[0] = op2[0] = '\0';
+
+	skipWhite(l);
+	if (l->data[l->i] == ',')
+	{
+		lerror("Invalid comma before operand", l->lineNum);
+		isValid = 0;
+		l->i++;
+	}
+
+	c = strtok((l->data)+(l->i), ",");		/* Divide by ',' to tokens */
+	if (!c)		/* No operands */
+	{
+		o1->type = o2->type = EMPTY;
+		o1->data[0] = o2->data[0] = '\0';
+	}
+	else
+	{
+		strcpy(o1->data, c);
+		o1->type = getOperandType(c);
+
+		c = strtok(NULL, ",");
+		if(!c)
+		{
+			o2->type = EMPTY;
+			o2->data[0] = '\0';
+		}
+		else
+		{
+			strcpy(o2->data, c);
+			o2->type = getOperandType(c);
+
+			if (strtok(NULL, ","))
+			{
+				lerror("Too many operators", l->lineNum);
+				isValid = 0;
+			}
+		}
+	}
+
+	return isValid;
 }

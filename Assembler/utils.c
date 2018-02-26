@@ -1,24 +1,49 @@
 #include <ctype.h>
 #include "assembler.h"
 
-/* getWord: Copy the next word in line to word
- * Words seperated by white spaces or commas
- * Returns number of chars has been copied */
-int getWord(char *line, int *index, char *word, int *flags)
+/* lerror:	Print error message to stderr and increase error counter */
+void lerror(char *s, int lineNum)
 {
-	int operation, i;
+	fprintf(stderr, "Error in line %d: %s.\n", lineNum, s);
+	errorDetected++;
+}
+
+/* lwarning: Print warning message to stderr */
+void lwarning(char *s, int lineNum)
+{
+	fprintf(stderr, "Warning! line %d: %s.\n", lineNum, s);
+}
+
+/* lineInit: Initialize line structure */
+void lineInit(line *lp, int lineNumber)
+{
+	symbolAddress = i = flags = 0;
+	lineNum = lineNumber;
+	lineType = UNKNOWN;
+}
+
+/* getWord: Copy the next word in line to word
+ * Words seperated by white spaces or commas	*/
+int getWord(line *l, char *word)
+{
+	int operation, index;
 	char c;
-	i = 0;
+	index = 0;
 	operation = 1;
-	skipWhite(line, index);
-	while(index && *index < MAX_LINE_LEN && i < MAX_LABEL_LEN && operation)
+
+	resetEOL(l);			/* Reset EOL flag */
+	skipWhite(l);
+	while((l->flags&(EOL|WORD_TOO_LONG|LINE_TOO_LONG) != 0) && operation)
 	{
-		c = line[*index];
+
+
+		c = l->data[l->i];
 		switch (c)
 		{
 		case '\n':
-			index = null;
+			l->i == -1;
 			*flags |= EOL;		/* flag end of line */
+			operation = 0;
 			break;
 		case ',':
 			*flags |= COMMA;	/* flag for comma */
@@ -28,30 +53,128 @@ int getWord(char *line, int *index, char *word, int *flags)
 			operation = 0;
 			break;
 		default:
-			word[i++] = c;
-			(*index)++;
+			word[index++] = c;
+			l->i++;
 			break;
 		}
+
+		if (l->i == MAX_LINE_LEN)			/* Check if exceeded max line length */
+			l->flags |= LINE_TOO_LONG;
 	}
-	
-	if (i == MAX_LABEL_LEN)		/* Word is too long */
-	{
-		*flags |= WORD_TOO_LONG;
-		word[i-1] = '\0';
-		return (i-1);
-	}
-	
-	word[i] = '\0';
-	return i;
+
+	if (flags |= LINE_TOO_LONG)
+		index--;
+	word[index] = '\0';
+	return index;
 }
 
 /* skipWhite: Skips white spaces and tabs in line */
-void skipWhite(char *line, int *index)
+void skipWhite(line *l)
 {
-	while(index && *index < MAX_LINE_LEN)
-		if (!(line[*index] == ' ' || line[*index] == '\t'))
-			break;
+	while(l->i < MAX_LINE_LEN)
+		if (!(l->data[l->i] == ' ' || l->data[l->i] == '\t'))
+			return;
 		else
-			(*index)++;
+			l->i++;
 }
+
+/* checkEmpty: Check if line is empty and proceed to first non-blank char
+ * returns 1 if empty line otherwise returns 0 */
+int checkEmpty(line *l)
+{
+	skipWhite(l);
+	if (l->data[l->i] == '\n')
+		return 1;
+	else
+		return 0;
+}
+
+/* resetEOL: set EOL flag in l to off */
+void resetEOL(line *l)
+{
+	l->flags &= ~EOL;
+}
+
+/* isLabel: check whether word is label or not
+ * Remove colon sign if needed and reduce length to right length */
+int isLabel(line *l, char *word, int *index)
+{
+	if (word[(*index)-1] == ':')
+	{
+		(*index)--;											/* Reduce length after to remove colon sign */
+		word[*index] = '\0';						/* Remove colon sign */
+		l->flags |= SYMBOL;
+		return 1;
+	}
+	else
+		return 0;
+}
+
+/* checkLabel:	Check label for errors as described belowe */
+int checkLabel(line *l, char *label, int length) {
+	int i = 0, isValid = 1;
+	if (length == 1)													/* Error - Solo colon sing */
+	{
+		lerror("Empty label", l->lineNum);
+		isValid = 0;
+	}
+	else if (length > MAX_LABEL_LEN)					/* Check if label is too long. */
+	{
+		lerror("Lavel invalid: length exceeded maximum allowed");
+		isValid = 0;
+	}
+	else if (isKeyword(label))								/* Check if label is keyWord */
+	{
+		lerror("Label cannot be a keyword", l->lineNum);
+		isValid = 0;
+	}
+
+	if (l->flags & EOL)												/* Label with no data */
+	{
+		lwarning("Label is not attached to instruction or data", l->lineNum);
+		isValid = 0;
+	}
+
+	if (!isalpha(label[0]))										/* Check if starts with non-alpha char */
+	{
+		lerror("Label invalid: must start with letter", l->lineNum);
+		isValid = 0;
+	}
+	for (i=1; i < length; i++)								/* Check if contains invalid chars */
+	{
+		if (!isalnum(label[i]))
+		{
+			lerror("Label invalid: contains non-alphanumeric characters.", l->lineNum);
+			isValid = 0;
+			break;
+		}
+	}
+
+	if (!isValid)									/* Set flag to invalid if needed */
+		l->flags |= INVALID_SYM;
+
+	return isValid;
+}
+
+/* isEOL:		Check for possibilities of end of line and returns the value. */
+int isEOL(line *l)
+{
+	if (l->i == -1)										/* If reached end of line before */
+		l->flags |= EOL;
+	else if (l->i >= MAX_LINE_LEN)		/* If reached maximum line length */
+		l->flags |= EOL;
+	else
+	{
+		skipWhite(l);
+		if (l->data[l->i] == '\n')			/* if reached \n */
+			l->flags |= EOL;
+	}
+
+	return (l->flags & EOL);
+}
+
+/* isSymbol:	returns 1 if valid symbol */
+int isSymbol(line *l)
+{
+	return l->flags&VALID_SYM;
 }
