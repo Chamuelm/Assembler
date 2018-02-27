@@ -4,26 +4,26 @@
 #include <string.h>
 
 /* firstPass: process first pass on current active file */
-int firstPass() {
+int firstPass()
+{
 	int isValidSymbol;							/* Symbol flag */
+	int lineC;											/* Line counter */
+	/* Temporary variables */
 	enum errorsShort err;
+	enum lineTypes lType;
 	char *word;
 	symbol *sym;
-	enum lineTypes lType;
-
 	line *currLine;
-	int lineC = 0;									/* Line counter */
-	/* char word[MAX_LINE_LEN];				/* Temp word string */
-	char labelName[MAX_LINE_LEN];		/* Temp label name */
+
+	lineC = 0;											/* Line counter initialize */
 
 	/* Processing each line */
-	while (fgets(currLine.line, MAX_LINE_LEN, fp)) {
+	while (fgets(currLine->data, MAX_LINE_LEN, fp)) {
 		lineC++;
 		currLine = lineInit(lineC);
 
-
 		/******************** Symbol check processing ********************/
-		word = getWord(l);
+		word = getWord(currLine);
 		if (!word) /* Empty line */
 			continue;	/* Skip to next line */
 
@@ -44,9 +44,9 @@ int firstPass() {
 				lerror(err,lineC);
 			}
 
-			free(word);		/* Release dynamicly allocated memory */
+			free(word);		/* Release dynamically allocated memory */
 			/* Receive next word in line to process*/
-			word = getWord(l);
+			word = getWord(currLine);
 			if(!word)	/* No more words in line = label in empty line */
 			{
 				lwarning(ERR_LABEL_EMPTY_LINE, lineC);
@@ -63,7 +63,7 @@ int firstPass() {
 			continue;
 		}
 
-		/* Symbol data update if needed */
+		/***************** Symbol data update if needed *****************/
 		if(isValidSymbol)
 		{
 			switch(lType)
@@ -83,43 +83,66 @@ int firstPass() {
 			}
 		}
 
-		/* Continue line processing */
+		/******************* Continue line processing *******************/
 		switch (lType) {
 		case COMMAND:
-			/* Determine number of instructions and adds to IC */
-			IC += calcInstructions(&currLine, word);
+			procCommand(currLine, word);
 			break;
 		case DATA:
-			if (isSymbol(&currLine))	/* If is symbol, saves address information */
-				currLine.symbolAddress = DC;
-			procData(&currLine);
+			procData(currLine);
 			break;
 		case STRING:
-			if (isSymbol(&currLine))	/* If is symbol, saves address information */
-				currLine.symbolAddress = DC;
-			procString(&currLine);
+			procString(currLine);
 			break;
 		case STRUCT:
-			if (isSymbol(&currLine))	/* If is symbol, saves address information */
-				currLine.symbolAddress = DC;
-			procStruct(&currLine);
+			procStruct(currLine);
 			break;
-		case ENTRY:
-			if (isSymbol(&currLine))
-				lwarning("Symbol assigned to entry instruction", currLine.lineNum);
+		case ENTRY:		/* Skip if entry */
 			break;
 		case EXTERN:
-			procExtern(&currLine);
+			procExtern(currLine);
 			break;
 		}
 
-		if (checkLabel(&currLine, labelName, wordCount)) /* Validity check - errors inside the function */
-			addSymbol(currLine.symbolName, currLine.symbolAddress, currLine.lineType);
+		/* Memory release */
+		free(word);
+		free(currLine);
 	}
 }
 
-/* Create This Function!!!!!! */
-getLineType(word);
+
+void procCommand(line *l, char *word)
+{
+	command *c;
+	operand *op1, *op2;
+	c = getCommand(word);
+
+	switch(c->operatorsNum)
+	{
+	case 0:
+		/* Check number of parameters */
+		if(!isEOL(l))
+		{
+			lerror(ERR_PARAM_EXTRA, l->lineNum);
+			return;
+		}
+		else
+			addInstruction(c, NULL, NULL);
+
+		break;
+	case 1:
+		/* Check comma before parameters */
+		if(checkComma(l))
+		{
+			lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
+			l->i++;
+		}
+
+		if()
+
+	}
+
+}
 
 
 /* calcInstructions:	Calculate number of instructions  
@@ -171,9 +194,9 @@ int calcInstructions(line *l)
 }
 
 /* Puts operands types in received pointers */ 
-void getOperandsType(line *l, *op1Type, *op2Type)
+void getOperands(line *l, *op1Type, *op2Type)
 {
-	char *p
+	char *p;
 	
 	skipWhite(l);								/* Skip white spaces */
 	p = strtok((l->data)+(l->i), ",");

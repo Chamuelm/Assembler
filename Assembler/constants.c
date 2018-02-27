@@ -12,6 +12,7 @@ const char const *errorsTab[] = {
 		"Invalid parameter: received sign without number",
 		"Invalid parameter: received invalid character",
 		"Invalid parameter: number is too big and not supported",
+		"Command does not receive parameters",
 		"Line length is not supported",
 		"Unknown command"
 };

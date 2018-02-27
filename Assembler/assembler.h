@@ -78,7 +78,7 @@ enum lineTypes {
 
 /* Contains instructions operand data */
 typedef struct {
-	char data[MAX_LINE_LEN];
+	char *data;
 	enum addressingType type;
 } operand;
 

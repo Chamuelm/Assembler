@@ -13,6 +13,7 @@ enum errorsShort {
 	ERR_PARAM_SIGN,								/* Invalid parameter: received sign without number */
 	ERR_PARAM_CHAR,								/* Invalid parameter: received invalid character */
 	ERR_PARAM_BIG,								/* Invalid parameter: number is too big and not supported by the system */
+	ERR_PARAM_EXTRA,							/* Command does not receive parameters */
 	ERR_LINE_LEN,									/* Line length is not supported */
 	ERR_UNKNOWN_CMD,							/* Unknown command */
 	NON_ERROR

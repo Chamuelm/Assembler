@@ -6,7 +6,7 @@
 void lerror(char *s, int lineNum)
 {
 	fprintf(stderr, "Error, line %d: %s.\n", lineNum, s);
-	errorDetected++;
+	errorsDetected++;
 }
 
 /* lwarning: Print warning message to stderr */
@@ -80,6 +80,38 @@ char *getWord(line *l)
 	return newS;
 }
 
+/* getParameter:	returns pointer dynamically allocated with the next parameter */
+char *getParameter(line *l)
+{
+	int count;
+	char c, *s;
+
+	skipWhite(l);
+	count = 0;
+	while((c = l->data[(l->i)+count]) != ',' && c != ' ' && c != '\t' && c != '\n')
+		count++;
+
+	if (count)
+	{
+		s = (char *)malloc(sizeof(char)*(count + 1));	/* +1 for '\0' */
+		if (!s)
+			exitMemory();	/* Exit if memory allocation failed */
+
+		strncpy(s, (l->data)+(l->i), count); /* Copy parameter */
+		s[count] = '\0';
+
+		(l->i) += count;										/* Increment line index */
+
+		return s;
+	}
+
+	return NULL;
+}
+
+operand *getOperand(line *l)
+{
+
+}
 
 /* skipWhite: Skips white spaces and tabs in line */
 void skipWhite(line *l)
@@ -241,7 +273,7 @@ enum lineTypes getLineType(char *cmd)
 /* getCommand: check if cmd is known CPU commands.
  * Returns pointer to command or NULL if unknown command
  */
-command *getCommand(char cmd)
+command *getCommand(char *cmd)
 {
 	int idx;
 	command *c = NULL;
@@ -253,21 +285,14 @@ command *getCommand(char cmd)
 	return c;
 }
 
-/* isEOL:		Check for possibilities of end of line and returns the value. */
+/* isEOL:		Check for end of line */
 int isEOL(line *l)
 {
-	if (l->i == -1)										/* If reached end of line before */
-		l->flags |= EOL;
-	else if (l->i >= MAX_LINE_LEN)		/* If reached maximum line length */
-		l->flags |= EOL;
+	skipWhite(l);
+	if (l->data[l->i] == '\n')			/* if reached \n */
+		return 1;
 	else
-	{
-		skipWhite(l);
-		if (l->data[l->i] == '\n')			/* if reached \n */
-			l->flags |= EOL;
-	}
-
-	return (l->flags & EOL);
+		return 0;
 }
 
 
@@ -296,34 +321,6 @@ int getRegisterNum(char *p)
 	free(name);								/* Memory release */
 	
 	return num;
-}
-
-/* getParameter:	returns pointer dynamically allocated with the next parameter */
-char *getParameter(line *l)
-{
-	int count;
-	char c, *s;
-
-	skipWhite(l);
-	count = 0;
-	while((c = l->data[(l->i)+count]) != ',' && c != ' ' && c != '\t' && c != '\n')
-		count++;
-
-	if (count)
-	{
-		s = (char *)malloc(sizeof(char)*(count + 1));	/* +1 for '\0' */
-		if (!s)
-			exitMemory();	/* Exit if memory allocation failed */
-
-		strncpy(s, (l->data)+(l->i), count); /* Copy parameter */
-		s[count] = '\0';
-
-		(l->i) += count;										/* Increment line index */
-
-		return s;
-	}
-
-	return NULL;
 }
 
 
