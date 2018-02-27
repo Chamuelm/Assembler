@@ -1,28 +1,36 @@
-#ifndef MAX_LINE_LEN
+#ifndef ASSEMBLER_H
+#define ASSEMBLER_H
 /************************* Constants definitions ****************************/
 #define MAX_LINE_LEN 81							/* Maximum length of line in code includes '\n' */
 #define MAX_INSTRUCTIONS 1000				/* Maximum number of instructions in one file */
 #define MAX_DATA  1000		   				/* Maximum number of data in one file */
 #define MAX_LABEL_LEN 30						/* Maximum length of label */
+#define MAX_NUMBER	512							/* Maximum number allowed in computer' hardware */
+#define MIN_MUNBER	-512						/* Minimum number allowed in computer' hardware */
+#define SIGN_BIT_MASK	1024					/* Bit mask of sign bit in 10-bit number */
 
 #define FALSE_RETURN -1							/* Return value is false or invalid */
 #define TRUE_RETURN		1							/* Return value is true or valid */
 
 
 /******************** Main structure global variables ***********************/
-#ifndef MAIN_DEF
-extern int instArr[MAX_INSTRUCTIONS]; /* Instructions array */
-extern int dataArr[MAX_INSTRUCTIONS]; /* Data Array */
-extern label labelsArr[MAX_LABELS]; /* Labels array */
+#ifndef MAIN_H
+extern int instArr[MAX_INSTRUCTIONS]; 					/* Instructions array */
+extern int dataArr[MAX_INSTRUCTIONS]; 					/* Data Array */
 extern char entries[MAX_LABELS][MAX_LABEL_LEN]; /* Entries array */
-extern int IC; /* Instructions counter */
-extern int DC; /* Data Counter */
-extern int LC; /* Labels counter */
-extern int EC; /* Entries counter */
-extern int errorDetected; /* Errors flag */
-extern FILE *fp; /* Active file pointer */
-extern char *fileName; /* Active file name */
+extern int IC; 																	/* Instructions counter */
+extern int DC; 																	/* Data Counter */
+extern int LC; 																	/* Labels counter */
+extern int EC; 																	/* Entries counter */
+extern int errorDetected; 											/* Errors flag */
+extern FILE *fp; 																/* Active file pointer */
+extern char *fileName; 													/* Active file name */
 #endif
+
+/********************	 	Symbol table file include		 ***********************/
+#include "symbol.h"
+
+
 
 /*
  * List of instruction types used to indicate the type of current
@@ -83,22 +91,16 @@ typedef struct {
 	unsigned int allowedDest : 5;		/* Allowed destination addresing type */
 } command;
 
-/* Holds label entry for labels table */
-typedef struct {
-	char name[MAX_LABEL_LEN];		/* Label name */
-	int address;								/* Address in memory */
-	unsigned int isExternal :1; /* Is assigned to external variable */
-	unsigned int isInst :1; 		/* Is assigned to instruction */
-} label;
+
 
 typedef struct {
-	char data[MAX_LINE_LEN];		/* Contains actual line */
-	unsigned int flags : 6;							/* Flags as described below */
-	int lineNum;								/* Line number in file */
-	int i;											/* Line index */
-	int symbolAddress;					/* Holds address if symbol */
-	enum lineTypes lineType;		/* Line type */
-	int lastRead;								/* Length of last word read */
+	char data[MAX_LINE_LEN];				/* Contains actual line */
+	unsigned int flags : 6;					/* Flags as described below */
+	int lineNum;										/* Line number in file */
+	int i;													/* Line index */
+	int symbolAddress;							/* Holds address if symbol */
+	enum lineTypes lineType;				/* Line type */
+	char symbolName[MAX_LABEL_LEN];	/* Symbol name if exist */
 } line;
 
 /* CPU commands ordered by opcodes. */
@@ -127,8 +129,7 @@ const command CPUCommands[] = {
 #define EOL						2			/* Received '\n' at end of word */
 #define VALID_SYM			4			/* Symbol is valid */
 #define SYMBOL				8			/* Line have symbol */
-#define INVALID_SYM		16		/* Symbol is invalid */
-#define LINE_TOO_LONG	32		/* Line is too long */
+#define LINE_TOO_LONG	16		/* Line is too long */
 
 /* Holds instruction entry for instructions table
  typedef struct{

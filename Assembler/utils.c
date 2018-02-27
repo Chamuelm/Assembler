@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <stdlib.h>
 #include "assembler.h"
 
 /* lerror:	Print error message to stderr and increase error counter */
@@ -20,6 +21,13 @@ void lineInit(line *lp, int lineNumber)
 	symbolAddress = i = flags = 0;
 	lineNum = lineNumber;
 	lineType = UNKNOWN;
+}
+
+/* exitMemory:	exit the program if memory allocation was unsuccessful */
+void exitMemory()
+{
+	fprintf(stderr, "Not enough memory. Exiting...\n");
+	exit(EXIT_FAILURE);
 }
 
 /* getWord: Copy the next word in line to word
@@ -163,7 +171,7 @@ int isLabel(line *l, char *word, int *index)
 		return 0;
 }
 
-/* checkLabel:	Check label for errors as described belowe */
+/* checkLabel:	Check label for errors as described below */
 int checkLabel(line *l, char *label, int length) {
 	int i = 0, isValid = 1;
 	if (length == 1)													/* Error - Solo colon sing */
@@ -204,7 +212,7 @@ int checkLabel(line *l, char *label, int length) {
 	}
 
 	if (!isValid)									/* Set flag to invalid if needed */
-		l->flags |= INVALID_SYM;
+		l->flags &= (~VALID_SYM);
 
 	return isValid;
 }
@@ -229,7 +237,7 @@ int isEOL(line *l)
 /* isSymbol:	returns 1 if valid symbol */
 int isSymbol(line *l)
 {
-	return l->flags&VALID_SYM;
+	return l->flags&VALID_SYM&SYMBOL;
 }
 
 /* 
@@ -258,4 +266,79 @@ int getRegisterNum(char *p)
 	return num;
 }
 
+/* getParameter:	returns pointer dynamically allocated with the next parameter */
+char *getParameter(line *l)
+{
+	int count;
+	char c, *s;
 
+	skipWhite(l);
+	count = 0;
+	while((c = l->data[(l->i)+count]) != ',' && c != ' ' && c != '\t' && c != '\n')
+		count++;
+
+	if (count)
+	{
+		s = (char *)malloc(sizeof(char)*(count + 1));	/* +1 for '\0' */
+		if (!s)
+			exitMemory();	/* Exit if memory allocation failed */
+
+		strncpy(s, (l->data)+(l->i), count); /* Copy parameter */
+		s[count] = '\0';
+
+		(l->i) += count;										/* Increment line index */
+
+		return s;
+	}
+
+	return NULL;
+}
+
+
+int checkComma(line *l)
+{
+	skipWhite(l);
+	if (l->data[l->i] == ',')
+		return TRUE_RETURN;
+	else
+		return FALSE_RETURN;
+}
+
+/* isValidNum: Check if string s is valid number
+ * Prints to stderr if is not valid */
+int isValidNum(char *s, int line)
+{
+	int i, count;
+	count = i = 0;
+
+	/* Skip sign */
+	if (s[i] == '+' || s[i] == '-')
+	{
+		i++;
+		/* Check if received lonely sign */
+		if (s[i] == '\0')
+		{
+			lerror("Received sign without number", line);
+			return FALSE_RETURN;
+		}
+	}
+
+	while (s[i] != '\0')
+	{
+		if(isdigit(s[i]))
+			i++;
+		else
+		{
+			lerror("Invalid character", line);
+			return FALSE_RETURN;
+		}
+	}
+
+	if(checkData(atoi(s)))		/* Check if number is in hardware's range */
+		return TRUE_RETURN;
+	else
+	{
+		lerror("Data parameter is too big.", line);
+		return FALSE_RETURN;
+	}
+}

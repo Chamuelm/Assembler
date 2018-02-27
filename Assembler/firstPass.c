@@ -3,19 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* firstPass: proccess first pass on current active file */
+/* firstPass: process first pass on current active file */
 int firstPass() {
 	int wordCount;
 	line currLine;
 	int lineC = 0;									/* Line counter */
 	char word[MAX_LINE_LEN];				/* Temp word string */
-	/*
-	char line[MAX_LINE_LEN];				/* Line buffer *
-	int lineIndex;									/* Line buffer index *
-	enum lineTypes lineType;				/* Line type *
-	int symbolAddress;							/* Symbol address *
-	int flags, i;
-	*/
+	char labelName[MAX_LINE_LEN];		/* Temp label name */
 
 	/* Processing each line */
 	while (fgets(currLine.line, MAX_LINE_LEN, fp)) {
@@ -26,30 +20,26 @@ int firstPass() {
 		if (checkEmpty(&currLine))
 			continue;
 
-		wordCount = (getWord(&currLine, word); /* Reads first word in line */
+		wordCount = getWord(&currLine, word); /* Reads first word in line */
 		if (currLine.flags&LINE_TOO_LONG)
 			lerror("Line too long.", currLine.lineNum);
 		if(isLabel(&currLine, word, &wordCount))
-		{												/* If first word is label check label for errors
+		{												/* If first word is label copy to lableName
 														 * and get line actual first word */
-			checkLabel(&currLine, word, wordCount);
+			strcpy(labelName, word);
 
-			/* Check if there is more words in line */
+			/* Check if there is more words in line before processing next */
 			if (isEOL(&currLine))
 			{
 				lerror("Label is not attached to instruction or data", currLine.lineNum);
-				currLine.flags |= INVALID_SYM;
+				currLine.flags &= (~VALID_SYM);		/* Mark symbol as invalid */
 				continue;
 			}
 			getWord(&currLine, word);
-
-			/* Remove symbol flag if invalid */
-			if (currLine.flags&INVALID_SYM)
-				currLine.flags |= VALID_SYM;
 		}
 		 
-		lineType = getLineType(word);
-		switch (lineType) {
+		currLine.lineType = getLineType(word);
+		switch (currLine.lineType) {
 		case COMMAND:
 			if (isSymbol(currLine))	/* If is symbol, saves address information */
 				currLine.symbolAddress = IC;
@@ -59,12 +49,12 @@ int firstPass() {
 		case DATA:
 			if (isSymbol(currLine))	/* If is symbol, saves address information */
 				currLine.symbolAddress = DC;
-			procData(&currLine, word);
+			procData(&currLine);
 			break;
 		case STRING:
 			if (isSymbol(currLine))	/* If is symbol, saves address information */
 				currLine.symbolAddress = DC;
-			procString(&currLine, word);
+			procString(&currLine);
 			break;
 		case STRUCT:
 			if (isSymbol(currLine))	/* If is symbol, saves address information */
@@ -79,13 +69,13 @@ int firstPass() {
 			break;
 		}
 
-		if (checkLabel(symbolName, lineC)) /* Validity check - errors inside the function */
-			addSymbol(symbolName, symbolAddress, lineType);
+		if (checkLabel(&currLine, labelName, wordCount)) /* Validity check - errors inside the function */
+			addSymbol(currLine.symbolName, currLine.symbolAddress, currLine.lineType);
 	}
 }
 
 /* Create This Function!!!!!! */
-getLineType(word)
+getLineType(word);
 
 
 /* calcInstructions:	Calculate number of instructions  
@@ -148,7 +138,7 @@ void getOperandsType(line *l, *op1Type, *op2Type)
 		*op1Type = *op2Type = EMPTY;
 		return;
 	}
-	else if (*p = '#')
+	else if (*p == '#')
 		*op1Type = IMMEDIATE;
 	else if (isRegisterName(p))
 		*op1Type = REGISTER;
@@ -160,7 +150,7 @@ void getOperandsType(line *l, *op1Type, *op2Type)
 	p = strtok(NULL, ",");
 	if (!p)											/* No operands received */
 		*op2Type = EMPTY;
-	else if (*p = '#')
+	else if (*p == '#')
 		*op2Type = IMMEDIATE;
 	else if (getRegisterNum(p) != FALSE_RETURN)
 		*op2Type = REGISTER;
@@ -198,8 +188,34 @@ int isStructName(char *s)
 	return FALSE_RETURN;
 }
 
+/*
+ * addData:	add given number and put in data array
+ * Given number is already in 2's complement so no need to convert.
+ * */
+int addData(int val)
+{
+	if (DC < MAX_INSTRUCTIONS)
+	{
+		if (val > 0)	/* Turn sign bit off */
+			dataArr[DC++] = val&(~SIGN_BIT_MASK);
+		else					/* Turn sign bit on */
+			dataArr[DC++] = val|SIGN_BIT_MASK;
+	}
+	else
+	{
+		fprintf(stderr, "Data array is too small. Exiting...\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+/* checkData:	Check if received number supported by 10-bit computer */
+int checkData(int val)
+{
+	return (val<=MAX_NUMBER && val >= MIN_MUNBER);
+}
+
 /* procData:	Stores data in data table, increment DC, and check for errors */ 
-void procData(l)
+void procData(line *l)
 {
 	char *p;						/* Temp string pointer */
 	
@@ -212,11 +228,12 @@ void procData(l)
 		l->i++;
 	}
 	
-	/* Receive tokens sepereted by commas */
-	while (p = strtok((l->data)+(i), ","))
+	/* Receive tokens separated by commas */
+	while (p = strtok((l->data)+(l->i), ","))
 	{
 		if(isValidDataNum(p, l->lineNum))
-			addDataNumber(atoi(p));
+			addData(atoi(p));
+		}
 	}
 }
 
@@ -265,10 +282,10 @@ int isValidDataNum(char *s, int line)
 			if (count == 0)		/* No numbers received so lonely sign */
 				lerror("Received sign without number", line);
 			sSkipWhite(s, &i);
-			if (s[i] != '\0')			/* If there is anothe parameter warn for missing comma and check the next one */
+			if (s[i] != '\0')			/* If there is another parameter warn for missing comma and check the next one */
 			{
 				lerror("Missing comma between parameters", line);
-				if (isValidDataNum(s+i,))
+				if (isValidDataNum(s+i))
 					addDataNumber(atoi(s+i));
 			}
 		}
@@ -278,5 +295,84 @@ int isValidDataNum(char *s, int line)
 			return FALSE_RETURN;
 		}
 	}
-	return TRUE_RETURN;
+
+	if(checkData(atoi(s)))		/* Check if number is in hardware's range */
+		return TRUE_RETURN;
+	else
+	{
+		lerror("Data parameter is too big.", line);
+		return FALSE_RETURN;
+	}
 }
+
+/* procString:	Stores string in data table, increment DC, and check for errors */
+void procString(line *l)
+{
+	char c;
+	skipWhite(l);
+
+	c = l->data[l->i++];
+	if(c == "\"")	/* Start of string */
+	{
+		/* Add chars to data table until end of string */
+		c = l->data[l->i++];
+		while (c != '\n')
+		{
+			if (c == "\"")	/* = end of string */
+			{
+				addData('\0');
+				break;
+			}
+			else
+				addData(c);
+		}
+
+		if (c == '\n')	/* Error if not received closing quotation mark */
+		{
+			lerror("Expected \" (Quotation marks) in end of line", l->lineNum);
+		}
+	}
+	else	/* Error detection */
+	{
+		if (c == '\n')
+			lerror("Missing string parameter", l->lineNum);
+		else
+			lerror("Invalid string parameter, String must be in quotation marks", l->lineNum);
+	}
+}
+
+void procStruct(line *l)
+{
+	char *temp;
+
+	if (checkComma(l))		/* Received comma before parameter */
+	{
+		lerror("Extra comma before parameter", l->lineNum);
+		l->i++;
+	}
+
+	temp = getParameter(l);
+	if (!temp)
+	{
+		lerror("Missing parameter", l->lineNum);
+		return;
+	}
+
+	if (isValidNum(temp, l->lineNum))
+	{
+		addData(atoi(temp));	/* Add struct's number to data array */
+		free(temp);
+	}
+
+	/* Look for comma between parameters */
+	if (checkComma(l))
+		l->i++;
+	else
+		lerror("Expected comma", l->lineNum);
+
+	/* Process struct's string */
+	procString(l);
+}
+
+
+

@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define MAIN_DEF
+#define MAIN_H
 #include "assembler.h"
 
 int instArr[MAX_INSTRUCTIONS]; /* Instructions array */
 int dataArr[MAX_INSTRUCTIONS]; /* Data Array */
-label labelsArr[MAX_LABELS]; /* Labels array */
 char entries[MAX_LABELS][MAX_LABEL_LEN]; /* Entries array */
 int IC; /* Instructions counter */
 int DC; /* Data Counter */
@@ -40,6 +39,7 @@ int main(int argc, char *argv[]) {
 
 void assembler(char *fileName, FILE *fp) {
 	IC = DC = LC = EC = 0;
+	symTableInit();
 	if (!firstPass(fileName, fp)) {
 		fprinf(stderr, "File %s is not compiled due to the errors above.\n", fileName);
 		return;
