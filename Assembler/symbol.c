@@ -51,7 +51,6 @@ symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType)
 }
 
 /* strdup: Copy string s to returned new allocated space */
-
 char *strdup(char *s)
 {
   char *p;
@@ -59,6 +58,36 @@ char *strdup(char *s)
   if(p != NULL)
     strcpy(p, s);
   return p;
+}
+
+/* removeSymbolPtr: remove sym from symbols table */
+void removeSymbol(symbol *toRemove)
+{
+	int h;
+	symbol *prev, *np;
+
+	prev = NULL;
+	h = hash(s);
+
+	/* lookup in symbol table to find previous */
+	for(np = symTable[h]; np!=NULL; np = np->next)
+	{
+		if(np == toRemove)
+			break;
+		prev = np;
+	}
+
+	if(np !=NULL)
+	{
+		if(prev == NULL)
+			symTable[h] = np->next;
+		else
+			prev->next = np->next;
+
+		/* set next to NULL for freeSymbol won't free all chain */
+		toRemove->next = NULL;
+		freeSymbol(toRemove);
+	}
 }
 
 /*	Initialize symbol table */

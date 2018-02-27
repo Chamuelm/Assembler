@@ -5,12 +5,9 @@
 
 int instArr[MAX_INSTRUCTIONS]; /* Instructions array */
 int dataArr[MAX_INSTRUCTIONS]; /* Data Array */
-char entries[MAX_LABELS][MAX_LABEL_LEN]; /* Entries array */
 int IC; /* Instructions counter */
 int DC; /* Data Counter */
-int LC; /* Labels counter */
-int EC; /* Entries counter */
-int errorDetected; /* Errors flag */
+int errorsDetected; /* Errors flag */
 FILE *fp;	/* Active file pointer */ 
 char *fileName;	/*Active file name */
 
@@ -29,17 +26,17 @@ int main(int argc, char *argv[]) {
 		fp = fopen(fileName, "r");
 		if (fp) { /* Check for valid file open */
 			errorDetected = 0;
-			assembler(fileName, fp);
+			assembler();
 			fclose(fp);
 		}
 		else
-			fprintf(stderr, "Error: file %s has not compiled: %s\n", fileName, strerror(errnum));
+			fprintf(stderr, "Error: file %s was not compiled: %s\n", fileName, strerror(errnum));
 	}
 }
 
 void assembler(char *fileName, FILE *fp) {
-	IC = DC = LC = EC = 0;
-	symTableInit();
+	IC = DC = 0;				/* Counter initalization */
+	symTableInit();			/* Symbol table initializaion */
 	if (!firstPass(fileName, fp)) {
 		fprinf(stderr, "File %s is not compiled due to the errors above.\n", fileName);
 		return;

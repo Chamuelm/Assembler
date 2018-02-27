@@ -5,22 +5,32 @@
 /* lerror:	Print error message to stderr and increase error counter */
 void lerror(char *s, int lineNum)
 {
-	fprintf(stderr, "Error in line %d: %s.\n", lineNum, s);
+	fprintf(stderr, "Error, line %d: %s.\n", lineNum, s);
 	errorDetected++;
 }
 
 /* lwarning: Print warning message to stderr */
 void lwarning(char *s, int lineNum)
 {
-	fprintf(stderr, "Warning! line %d: %s.\n", lineNum, s);
+	fprintf(stderr, "Warning, line %d: %s.\n", lineNum, s);
 }
 
-/* lineInit: Initialize line structure */
-void lineInit(line *lp, int lineNumber)
+/* lineInit: Initialize line structure
+ * Returns dynamically allocated pointer */
+line *lineInit(int lineNumber)
 {
-	symbolAddress = i = flags = 0;
-	lineNum = lineNumber;
-	lineType = UNKNOWN;
+	line *lp;
+
+	lp = (line *)malloc(sizeof(line));
+	if(!lp)
+		exitMemory();
+
+	lp->symbolAddress = 0;
+	lp->i = 0;
+	lp->lineNum =lineNumber;
+	lp->lineType = UNKNOWN;
+
+	return lp;
 }
 
 /* exitMemory:	exit the program if memory allocation was unsuccessful */
@@ -30,60 +40,57 @@ void exitMemory()
 	exit(EXIT_FAILURE);
 }
 
-/* getWord: Copy the next word in line to word
- * Words seperated by white spaces or commas	*/
-int getWord(line *l, char *word)
+/* getWord: returns dynamically allocated string
+ * with the next word in line separated by spaces or tabs */
+char *getWord(line *l)
 {
-	int operation, index;
-	char c;
-	index = 0;
-	operation = 1;
+	int idx, count;
+	char *s, *newS;
 
-	resetEOL(l);			/* Reset EOL flag */
 	skipWhite(l);
-	while((l->flags&(EOL|WORD_TOO_LONG|LINE_TOO_LONG) != 0) && operation)
+	s = l->data;		/* For bright and clear code */
+	idx = l->i;
+	count = 0;			/* Counter for allocation size */
+
+	while(s[idx] != '\n')
 	{
-
-
-		c = l->data[l->i];
-		switch (c)
+		if(s[idx] == ' ' || s[idx] == '\0')	/* Stops if reached white space */
+			break;
+		else				/* Count string length */
 		{
-		case '\n':
-			l->i == -1;
-			*flags |= EOL;		/* flag end of line */
-			operation = 0;
-			break;
-		case ',':
-			*flags |= COMMA;	/* flag for comma */
-			operation = 0;
-			break;
-		case ' ': case '\t':
-			operation = 0;
-			break;
-		default:
-			word[index++] = c;
-			l->i++;
-			break;
+			idx++;
+			count++;
 		}
-
-		if (l->i == MAX_LINE_LEN)			/* Check if exceeded max line length */
-			l->flags |= LINE_TOO_LONG;
 	}
 
-	if (flags |= LINE_TOO_LONG)
-		index--;
-	word[index] = '\0';
-	return index;
+	if (!count)			/* If current char in line is '\n'  after */
+		return NULL;	/* skipping white spaces, so no more input in line */
+	else
+	{
+		newS = (char *)malloc(sizeof(char)*(count+1)); /* +1 for '\0' */
+		if (!newS)
+			exitMemory();
+		else
+		{
+			strncpy(newS, s+(l->i), count);
+			newS[count] = '\0';
+		}
+	}
+	l->i += count;	/* increment actual index saved in line struct */
+	return newS;
 }
+
 
 /* skipWhite: Skips white spaces and tabs in line */
 void skipWhite(line *l)
 {
-	while(l->i < MAX_LINE_LEN)
-		if (!(l->data[l->i] == ' ' || l->data[l->i] == '\t'))
-			return;
-		else
+	char c;
+
+	while((c = l->data[l->i]) != '\n')
+		if (c == ' ' || c == '\t')
 			l->i++;
+		else
+			break;
 }
 
 /* 
@@ -139,6 +146,16 @@ char *dismissWhite(char *s)
 	return new;
 }
 
+/* isSymbol:	returns TRUE_RETURN if symbol declaration */
+int isSymbol(char *s)
+{
+	int n = strlen(s);
+	if (s[n-1] == ':')
+		return TRUE_RETURN;
+	else
+		return FALSE_RETURN;
+}
+
 /* checkEmpty: Check if line is empty and proceed to first non-blank char
  * returns 1 if empty line otherwise returns 0 */
 int checkEmpty(line *l)
@@ -156,65 +173,84 @@ void resetEOL(line *l)
 	l->flags &= ~EOL;
 }
 
-/* isLabel: check whether word is label or not
- * Remove colon sign if needed and reduce length to right length */
-int isLabel(line *l, char *word, int *index)
+/* removeColon:	Removes colon from label */
+void removeColon(char *symbolName)
 {
-	if (word[(*index)-1] == ':')
-	{
-		(*index)--;											/* Reduce length after to remove colon sign */
-		word[*index] = '\0';						/* Remove colon sign */
-		l->flags |= SYMBOL;
-		return 1;
-	}
-	else
-		return 0;
+	int n;
+
+	n = strlen(symbolName);
+	symbolName[n-1] = '\0';
 }
 
-/* checkLabel:	Check label for errors as described below */
-int checkLabel(line *l, char *label, int length) {
+/* checkSymbol:	Check label for possible errors:
+ *  - Length higher than MAX_LABEL_LEN
+ * 	-	First character is not a alphabetic letter
+ * 	- Contains invalid characters (non alphanumeric)
+ * 	- Language keyword
+ * 	- Already exist
+ *
+ * 	Returns error code if invalid otherwise returns NON_ERROR
+ *  */
+enum errorsShort checkSymbol(char *symbol)
+	{
+	int length;
 	int i = 0, isValid = 1;
-	if (length == 1)													/* Error - Solo colon sing */
-	{
-		lerror("Empty label", l->lineNum);
-		isValid = 0;
-	}
-	else if (length > MAX_LABEL_LEN)					/* Check if label is too long. */
-	{
-		lerror("Lavel invalid: length exceeded maximum allowed");
-		isValid = 0;
-	}
+
+	length = strlen(symbol);
+	if (!length)															/* missing label name */
+		return ERR_LABEL_EMPTY;
+	else if (length > MAX_LABEL_LEN)					/* label length */
+		return ERR_LABEL_LONG;
 	else if (isKeyword(label))								/* Check if label is keyWord */
+		return ERR_LABEL_KEYWORD;
+	else if (!isalpha(label[0]))							/* starts with non-alpha char */
+	 return ERR_LABEL_LETTER;
+	else
 	{
-		lerror("Label cannot be a keyword", l->lineNum);
-		isValid = 0;
-	}
-
-	if (l->flags & EOL)												/* Label with no data */
-	{
-		lwarning("Label is not attached to instruction or data", l->lineNum);
-		isValid = 0;
-	}
-
-	if (!isalpha(label[0]))										/* Check if starts with non-alpha char */
-	{
-		lerror("Label invalid: must start with letter", l->lineNum);
-		isValid = 0;
-	}
-	for (i=1; i < length; i++)								/* Check if contains invalid chars */
-	{
-		if (!isalnum(label[i]))
+		for (i=1; i < length; i++)								/* Check if contains invalid chars */
 		{
-			lerror("Label invalid: contains non-alphanumeric characters.", l->lineNum);
-			isValid = 0;
-			break;
+			if (!isalnum(label[i]))
+			return ERR_LABEL_CHAR;
 		}
 	}
 
-	if (!isValid)									/* Set flag to invalid if needed */
-		l->flags &= (~VALID_SYM);
+		return NON_ERROR;
+}
 
-	return isValid;
+/* getLineType: Returns line type:
+ * COMMAND/DATA/STRING/STRUCT/ENTRY/EXTERN/UNKNOWN
+ */
+enum lineTypes getLineType(char *cmd)
+{
+	if (getCommand(cmd) != NULL)
+		return COMMAND;
+	else if(strcmp(cmd, ".data") == 0)
+		return DATA;
+	else if(strcmp(cmd, ".string") == 0)
+		return STRING;
+	else if(strcmp(cmd, ".struct") == 0)
+		return STRUCT;
+	else if(strcmp(cmd, ".entry") == 0)
+		return ENTRY;
+	else if(strcmp(cmd, ".extern") == 0)
+		return EXTERN;
+	else
+		return UNKNOWN;
+}
+
+/* getCommand: check if cmd is known CPU commands.
+ * Returns pointer to command or NULL if unknown command
+ */
+command *getCommand(char cmd)
+{
+	int idx;
+	command *c = NULL;
+
+	for (idx = 0; idx < CPU_COMMANDS_NUM; idx++)
+		if (strcmp(CPUCommands[idx].name, cmd) == 0)
+			c = &CPUCommands[idx];
+
+	return c;
 }
 
 /* isEOL:		Check for possibilities of end of line and returns the value. */
@@ -234,11 +270,7 @@ int isEOL(line *l)
 	return (l->flags & EOL);
 }
 
-/* isSymbol:	returns 1 if valid symbol */
-int isSymbol(line *l)
-{
-	return l->flags&VALID_SYM&SYMBOL;
-}
+
 
 /* 
  * getRegisterNum:	Returns register number if is register

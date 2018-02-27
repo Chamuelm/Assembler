@@ -5,67 +5,111 @@
 
 /* firstPass: process first pass on current active file */
 int firstPass() {
-	int wordCount;
-	line currLine;
+	int isValidSymbol;							/* Symbol flag */
+	enum errorsShort err;
+	char *word;
+	symbol *sym;
+	enum lineTypes lType;
+
+	line *currLine;
 	int lineC = 0;									/* Line counter */
-	char word[MAX_LINE_LEN];				/* Temp word string */
+	/* char word[MAX_LINE_LEN];				/* Temp word string */
 	char labelName[MAX_LINE_LEN];		/* Temp label name */
 
 	/* Processing each line */
 	while (fgets(currLine.line, MAX_LINE_LEN, fp)) {
 		lineC++;
-		lineInit(&currLine, lineC);
+		currLine = lineInit(lineC);
 
-		/* Proceed to first non-blank char and check if empty line */
-		if (checkEmpty(&currLine))
-			continue;
 
-		wordCount = getWord(&currLine, word); /* Reads first word in line */
-		if (currLine.flags&LINE_TOO_LONG)
-			lerror("Line too long.", currLine.lineNum);
-		if(isLabel(&currLine, word, &wordCount))
-		{												/* If first word is label copy to lableName
-														 * and get line actual first word */
-			strcpy(labelName, word);
+		/******************** Symbol check processing ********************/
+		word = getWord(l);
+		if (!word) /* Empty line */
+			continue;	/* Skip to next line */
 
-			/* Check if there is more words in line before processing next */
-			if (isEOL(&currLine))
+		/* if it is a symbol declaration check symbol
+		 * validity and get next word in line
+		 */
+		if (isSymbol(word))
+		{
+			removeColon(word);
+			if ((err = checkSymbol(word)) == NON_ERROR)
 			{
-				lerror("Label is not attached to instruction or data", currLine.lineNum);
-				currLine.flags &= (~VALID_SYM);		/* Mark symbol as invalid */
-				continue;
+				isValidSymbol = 1;
+				sym = addSymbol(word, EMPTY_ADDRESS, UNKNOWN);
 			}
-			getWord(&currLine, word);
+			else
+			{
+				isValidSymbol = 0;
+				lerror(err,lineC);
+			}
+
+			free(word);		/* Release dynamicly allocated memory */
+			/* Receive next word in line to process*/
+			word = getWord(l);
+			if(!word)	/* No more words in line = label in empty line */
+			{
+				lwarning(ERR_LABEL_EMPTY_LINE, lineC);
+				continue;		/* Continue to next line */
+			}
 		}
-		 
-		currLine.lineType = getLineType(word);
-		switch (currLine.lineType) {
+
+		/******************** Actual line processing ********************/
+		lType = getLineType(word);
+
+		if(lType == UNKNOWN)		/* If unknown command, continue to next line */
+		{
+			lerror(ERR_UNKNOWN_CMD, lineC);
+			continue;
+		}
+
+		/* Symbol data update if needed */
+		if(isValidSymbol)
+		{
+			switch(lType)
+			{
+			case COMMAND:
+				sym->type = COMMAND;
+				sym->address = IC;
+				break;
+			case DATA: case STRING: case STRUCT:
+				sym->type = DATA;
+				sym->address = DC;
+				break;
+			case entry:
+				lwarning(ERR_LABEL_ENTRY, lineC);
+				removeSymbol(sym);
+				break;
+			}
+		}
+
+		/* Continue line processing */
+		switch (lType) {
 		case COMMAND:
-			if (isSymbol(currLine))	/* If is symbol, saves address information */
-				currLine.symbolAddress = IC;
 			/* Determine number of instructions and adds to IC */
 			IC += calcInstructions(&currLine, word);
 			break;
 		case DATA:
-			if (isSymbol(currLine))	/* If is symbol, saves address information */
+			if (isSymbol(&currLine))	/* If is symbol, saves address information */
 				currLine.symbolAddress = DC;
 			procData(&currLine);
 			break;
 		case STRING:
-			if (isSymbol(currLine))	/* If is symbol, saves address information */
+			if (isSymbol(&currLine))	/* If is symbol, saves address information */
 				currLine.symbolAddress = DC;
 			procString(&currLine);
 			break;
 		case STRUCT:
-			if (isSymbol(currLine))	/* If is symbol, saves address information */
+			if (isSymbol(&currLine))	/* If is symbol, saves address information */
 				currLine.symbolAddress = DC;
-			procStruct(&currLine, word);
+			procStruct(&currLine);
 			break;
 		case ENTRY:
-			procEntry(&currLine, word);
+			if (isSymbol(&currLine))
+				lwarning("Symbol assigned to entry instruction", currLine.lineNum);
 			break;
 		case EXTERN:
-			procExtern(&currLine, word);
+			procExtern(&currLine);
 			break;
 		}
 
@@ -341,6 +385,7 @@ void procString(line *l)
 	}
 }
 
+/* procStruct:	Stores struct in data table, increment DC, and check for errors */
 void procStruct(line *l)
 {
 	char *temp;
@@ -374,5 +419,18 @@ void procStruct(line *l)
 	procString(l);
 }
 
+/* procExtern:	Stores externs in data table, increment DC, and check for errors */
+void procExtern(line *l)
+{
+	char *c;
 
-
+	if (checkComma(l))
+	{
+		lerror("Invalid comma before parameter", l->lineNum);
+		l->i++;
+	}
+	while (c = getParameter(l))
+	{
+		if
+	}
+}

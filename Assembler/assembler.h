@@ -8,27 +8,27 @@
 #define MAX_NUMBER	512							/* Maximum number allowed in computer' hardware */
 #define MIN_MUNBER	-512						/* Minimum number allowed in computer' hardware */
 #define SIGN_BIT_MASK	1024					/* Bit mask of sign bit in 10-bit number */
-
+#define EMPTY_ADDRESS 0							/* Empty address */
 #define FALSE_RETURN -1							/* Return value is false or invalid */
 #define TRUE_RETURN		1							/* Return value is true or valid */
+#define CPU_COMMANDS_NUM 16					/* Number of CPU command available */
 
 
 /******************** Main structure global variables ***********************/
 #ifndef MAIN_H
 extern int instArr[MAX_INSTRUCTIONS]; 					/* Instructions array */
 extern int dataArr[MAX_INSTRUCTIONS]; 					/* Data Array */
-extern char entries[MAX_LABELS][MAX_LABEL_LEN]; /* Entries array */
 extern int IC; 																	/* Instructions counter */
 extern int DC; 																	/* Data Counter */
-extern int LC; 																	/* Labels counter */
-extern int EC; 																	/* Entries counter */
-extern int errorDetected; 											/* Errors flag */
+extern int errorsDetected; 											/* Errors flag */
 extern FILE *fp; 																/* Active file pointer */
 extern char *fileName; 													/* Active file name */
 #endif
 
 /********************	 	Symbol table file include		 ***********************/
 #include "symbol.h"
+#include "errors.h"
+extern const char const *errorsTab[];	/* Errors constants table */
 
 
 
@@ -103,26 +103,6 @@ typedef struct {
 	char symbolName[MAX_LABEL_LEN];	/* Symbol name if exist */
 } line;
 
-/* CPU commands ordered by opcodes. */
-const command CPUCommands[] = {
-/* 	Name  Opcode  Operators  SrcAdd	 		 DestAdd	  */
-		{"mov",		0,		2,			ALL_ADD,		REG_ADD},
-		{"cmp",		1,		2,			ALL_ADD,		ALL_ADD},
-		{"add",		2,		2,			ALL_ADD,		REG_ADD},
-		{"sub",		3,		2,			ALL_ADD,		REG_ADD},
-		{"not",		4,		1,			NONE,				REG_ADD},
-		{"clr",		5,		1,			NONE,				REG_ADD},
-		{"lea",		6,		2,			LABEL_ADD,	REG_ADD},
-		{"inc",		7,		1,			NONE,				REG_ADD},
-		{"dec", 	8,		1,			NONE,				REG_ADD},
-		{"jmp", 	9,		1,			NONE,				REG_ADD},
-		{"bne", 	10,		1,			NONE,				REG_ADD},
-		{"red",		11,		1,			NONE,				REG_ADD},
-		{"prn",		12,		1,			NONE,				ALL_ADD},
-		{"jsr",		13,		1,			NONE,				REG_ADD},
-		{"rts",		14,		0,			NONE,				NONE},
-		{"stop",	15,		0,			NONE,				NONE}
-};
 
 /* Flags for use in line read functions */
 #define COMMA					1			/* Received comma at end of word */
