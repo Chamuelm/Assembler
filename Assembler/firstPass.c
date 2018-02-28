@@ -123,14 +123,16 @@ void procCommand(line *l, char *word)
 		/* Check number of parameters */
 		if(!isEOL(l))
 		{
-			lerror(ERR_PARAM_EXTRA, l->lineNum);
+			lerror(ERR_MORE_PARM0, l->lineNum);
 			return;
 		}
 		else
-			addInstruction(c, NULL, NULL);
+			addInstruction(c, NULL, NULL, l->lineNum);
 
 		break;
-	case 1:
+
+
+	case 1:	/* Get one operands */
 		/* Check comma before parameters */
 		if(checkComma(l))
 		{
@@ -138,122 +140,71 @@ void procCommand(line *l, char *word)
 			l->i++;
 		}
 
-		if()
-
-	}
-
-}
-
-
-/* calcInstructions:	Calculate number of instructions  
- * based on operators left in line
- */ 
-int calcInstructions(line *l)
-{
-	enum addressingType op1Type, op2Type;
-	int i = 1;
-
-	getOperandsType(l, &op1Type, &op2Type);
-	
-	/* 
-	 * Increment i by type of addresing type:
-	 *	All but struct required 1 additional word
-	 *	Struct required 2 additional words.
-	 *	If both are REGISTER they can share the same word  
-	  */
-	switch(op1Type)
-	{
-	case EMPTY:
-		break;
-	case REGISTER:
-	case IMMEDIATE:
-	case DIRECT:
-		i++;
-		break;
-	case STRUCT_ADD:
-		i += 2;
-	}
-	
-	switch(op2Type)
-	{
-	case EMPTY:
-		break;
-	case REGISTER:
-		if (op1Tryp != REGISTER)
-			i++;											/* If op1Type is REGISTER it use */
-		break;											/* the same additional word */
-	case IMMEDIATE:
-	case DIRECT:
-		i++;
-		break;
-	case STRUCT_ADD:
-		i += 2;
-	}
-	
-	return i;
-}
-
-/* Puts operands types in received pointers */ 
-void getOperands(line *l, *op1Type, *op2Type)
-{
-	char *p;
-	
-	skipWhite(l);								/* Skip white spaces */
-	p = strtok((l->data)+(l->i), ",");
-	if (!p)											/* No operands received */
-	{
-		*op1Type = *op2Type = EMPTY;
-		return;
-	}
-	else if (*p == '#')
-		*op1Type = IMMEDIATE;
-	else if (isRegisterName(p))
-		*op1Type = REGISTER;
-	else if (isStructName(p))
-		*op1Type = STRUCT_ADD;
-	else
-		*op1Type = DIRECT;
-	
-	p = strtok(NULL, ",");
-	if (!p)											/* No operands received */
-		*op2Type = EMPTY;
-	else if (*p == '#')
-		*op2Type = IMMEDIATE;
-	else if (getRegisterNum(p) != FALSE_RETURN)
-		*op2Type = REGISTER;
-	else if (isStructName(p))
-		*op2Type = STRUCT_ADD;
-	else
-		*op2Type = DIRECT;
-}
-
-/* 
- * isStructName: Check if s is a struct template
- * ie. name.1 or name.2
- */ 
-int isStructName(char *s)
-{
-	int n, i;
-	
-	n = strlen(s);
-	i = 1;
-	/* 
-	 * Struct name must be at lease one char so
-	 * start look for end of struct name in index 1
-	 */ 
-	
-	while (i < n)
-	{
-		if (s[i] == '.')		/* Looks for '.' after struct name */
-		{
-			if(i+1<n && (s[i+1] == '1' || s[i+1] == '2'))
-				return TRUE_RETURN;
+		op1 = getOperand(l);
+		if(!op1)
+			lerror(ERR_MISS_PARAM, l->lineNum);	/* Missing operand */
+		else
+		{	/* Other line validity checks */
+			if (checkComma(l))
+			{
+				if (getOperand(l))
+					lerror(ERR_MORE_PARAM1, l->lineNum); /* Too many parameters */
+				else
+					lerror(ERR_COMMA_EXTRA, l->lineNum); /* Extra comma after parameter */
+			}
 			else
-				return FALSE_RETURN;
+			{
+				if (isEOL(l))
+					addInstruction(c, op1, NULL, l->lineNum);
+				else
+					lerror(ERR_CMD_EXTRA_TEXT, l->lineNum);
+			}
+
 		}
-	}
-	return FALSE_RETURN;
-}
+		break;
+
+
+	case 2:	/* Get 2 operands */
+		/* Check comma before parameters */
+		if(checkComma(l))
+		{
+			lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
+			l->i++;
+		}
+		op1 = getOperand(l);
+		if(!op1)
+			lerror(ERR_MISS_PARAM, l->lineNum);	/* Missing operand */
+		else
+		{
+			if(!getComma(l))	/* look for comma between parameters */
+			{
+				op2 = getOperand(l);
+				if(!op2)	/* If no comma and not operand */
+					lerror(ERR_MISS_PARAM, l->lineNum);	/* Missing operand */
+				else
+				{
+					lerror(ERR_COMMA_EXPECTED, l->lineNum);
+					addInstruction(c, op1, op2, l->lineNum);
+				}
+			}
+			else /* received comma */
+			{
+				op2 = getOperand(l);
+				if(!op2)
+					lerror(ERR_MISS_PARAM, l->lineNum);	/* Missing operand */
+				else	/* No errors */
+					addInstruction(c, op1, op2, l->lineNum);
+			}
+		}
+		break;
+
+
+	}	/* End switch */
+}	/* End function */
+
+
+
+
 
 /*
  * addData:	add given number and put in data array
@@ -275,100 +226,39 @@ int addData(int val)
 	}
 }
 
-/* checkData:	Check if received number supported by 10-bit computer */
-int checkData(int val)
+void addInstruction(command c, operand operand1, operand operand2, int lineNumber)
 {
-	return (val<=MAX_NUMBER && val >= MIN_MUNBER);
+	instArr[instIndex].cmd = c;
+	insrArr[instIndex].op1 = operand1;
+	insrArr[instIndex].op2 = operand2;
+	insrArr[instIndex].lineNum = lineNumber;
+
+	IC += caclinstructions(instArr[instIndex]);	/* Instructions counter increment */
+	instIndex++;								/* Instructions array index increment */
 }
+
+
+
 
 /* procData:	Stores data in data table, increment DC, and check for errors */ 
 void procData(line *l)
 {
 	char *p;						/* Temp string pointer */
-	
+
 	skipWhite(l);
-	
+
 	/* Check for comma before data */
 	if (l->data[l->i] == ',')
 	{
 		lerror("Invalid comma before data", l->lineNum);
 		l->i++;
 	}
-	
+
 	/* Receive tokens separated by commas */
 	while (p = strtok((l->data)+(l->i), ","))
 	{
 		if(isValidDataNum(p, l->lineNum))
 			addData(atoi(p));
-		}
-	}
-}
-
-/* isValidDataNum: Check if string s is not valid number
- * Prints to stderr if is not valid */
-int isValidDataNum(char *s, int line)
-{
-	int i, count;
-	
-	count = i = 0;
-	
-	sSkipWhite(s, &i); /* Skips white spaces */
-	
-	/* Skip sign */
-	if (s[i] == '+' || s[i] == '-')
-	{
-		i++;
-		/* Check if received lonely sign */
-		if (s[i] == '\0')
-		{
-			lerror("Received sign without number", line);
-			return FALSE_RETURN;
-		}
-	}
-	else
-	{
-		/* Check if received empty string 
-		 * Empty string means invalid comma */
-		if (s[i] == '\0')
-		{
-			lerror("Invalid comma: Missing parameter between commas or extra comma at the end", line);
-			return FALSE_RETURN;
-		}
-	}
-		
-	/* Check if the rest are digits */
-	while (s[i] != '\0')
-	{
-		if (isdigit[s[i]])	/* Skip if digit */
-		{
-			count++;
-			i++;
-		}
-		else if (s[i] == ' ' || s[i] == '\t')		/* If white space check if finish or have another parameter */ 
-		{
-			if (count == 0)		/* No numbers received so lonely sign */
-				lerror("Received sign without number", line);
-			sSkipWhite(s, &i);
-			if (s[i] != '\0')			/* If there is another parameter warn for missing comma and check the next one */
-			{
-				lerror("Missing comma between parameters", line);
-				if (isValidDataNum(s+i))
-					addDataNumber(atoi(s+i));
-			}
-		}
-		else
-		{
-			lerror("Invalid character", line);
-			return FALSE_RETURN;
-		}
-	}
-
-	if(checkData(atoi(s)))		/* Check if number is in hardware's range */
-		return TRUE_RETURN;
-	else
-	{
-		lerror("Data parameter is too big.", line);
-		return FALSE_RETURN;
 	}
 }
 

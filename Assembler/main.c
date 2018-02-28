@@ -3,7 +3,8 @@
 #define MAIN_H
 #include "assembler.h"
 
-int instArr[MAX_INSTRUCTIONS]; /* Instructions array */
+instruction instArr[MAX_INSTRUCTIONS]; /* Instructions array */
+int instIndex;							/* Instructions array index */
 int dataArr[MAX_INSTRUCTIONS]; /* Data Array */
 int IC; /* Instructions counter */
 int DC; /* Data Counter */
@@ -35,8 +36,8 @@ int main(int argc, char *argv[]) {
 }
 
 void assembler(char *fileName, FILE *fp) {
-	IC = DC = 0;				/* Counter initalization */
-	symTableInit();			/* Symbol table initializaion */
+	IC = DC = instIndex = 0;				/* Counter initialization */
+	symTableInit();			/* Symbol table initialization */
 	if (!firstPass(fileName, fp)) {
 		fprinf(stderr, "File %s is not compiled due to the errors above.\n", fileName);
 		return;
@@ -48,5 +49,29 @@ void assembler(char *fileName, FILE *fp) {
 	/* object file creation - need instructions array */
 	/* extern symbol file creation - need symbols array */
 	/* entry file creation - need labels array */
+
+	/* free symbols table*/
+	/* free instArr */
 }
 
+
+/* lerror:	Print error message to stderr and increase error counter */
+void lerror(char *s, int lineNum)
+{
+	fprintf(stderr, "Error, line %d: %s.\n", lineNum, s);
+	errorsDetected++;
+}
+
+/* lwarning: Print warning message to stderr */
+void lwarning(char *s, int lineNum)
+{
+	fprintf(stderr, "Warning, line %d: %s.\n", lineNum, s);
+}
+
+
+/* exitMemory:	exit the program if memory allocation was unsuccessful */
+void exitMemory()
+{
+	fprintf(stderr, "Not enough memory. Exiting...\n");
+	exit(EXIT_FAILURE);
+}

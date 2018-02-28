@@ -2,208 +2,6 @@
 #include <stdlib.h>
 #include "assembler.h"
 
-/* lerror:	Print error message to stderr and increase error counter */
-void lerror(char *s, int lineNum)
-{
-	fprintf(stderr, "Error, line %d: %s.\n", lineNum, s);
-	errorsDetected++;
-}
-
-/* lwarning: Print warning message to stderr */
-void lwarning(char *s, int lineNum)
-{
-	fprintf(stderr, "Warning, line %d: %s.\n", lineNum, s);
-}
-
-/* lineInit: Initialize line structure
- * Returns dynamically allocated pointer */
-line *lineInit(int lineNumber)
-{
-	line *lp;
-
-	lp = (line *)malloc(sizeof(line));
-	if(!lp)
-		exitMemory();
-
-	lp->symbolAddress = 0;
-	lp->i = 0;
-	lp->lineNum =lineNumber;
-	lp->lineType = UNKNOWN;
-
-	return lp;
-}
-
-/* exitMemory:	exit the program if memory allocation was unsuccessful */
-void exitMemory()
-{
-	fprintf(stderr, "Not enough memory. Exiting...\n");
-	exit(EXIT_FAILURE);
-}
-
-/* getWord: returns dynamically allocated string
- * with the next word in line separated by spaces or tabs */
-char *getWord(line *l)
-{
-	int idx, count;
-	char *s, *newS;
-
-	skipWhite(l);
-	s = l->data;		/* For bright and clear code */
-	idx = l->i;
-	count = 0;			/* Counter for allocation size */
-
-	while(s[idx] != '\n')
-	{
-		if(s[idx] == ' ' || s[idx] == '\0')	/* Stops if reached white space */
-			break;
-		else				/* Count string length */
-		{
-			idx++;
-			count++;
-		}
-	}
-
-	if (!count)			/* If current char in line is '\n'  after */
-		return NULL;	/* skipping white spaces, so no more input in line */
-	else
-	{
-		newS = (char *)malloc(sizeof(char)*(count+1)); /* +1 for '\0' */
-		if (!newS)
-			exitMemory();
-		else
-		{
-			strncpy(newS, s+(l->i), count);
-			newS[count] = '\0';
-		}
-	}
-	l->i += count;	/* increment actual index saved in line struct */
-	return newS;
-}
-
-/* getParameter:	returns pointer dynamically allocated with the next parameter */
-char *getParameter(line *l)
-{
-	int count;
-	char c, *s;
-
-	skipWhite(l);
-	count = 0;
-	while((c = l->data[(l->i)+count]) != ',' && c != ' ' && c != '\t' && c != '\n')
-		count++;
-
-	if (count)
-	{
-		s = (char *)malloc(sizeof(char)*(count + 1));	/* +1 for '\0' */
-		if (!s)
-			exitMemory();	/* Exit if memory allocation failed */
-
-		strncpy(s, (l->data)+(l->i), count); /* Copy parameter */
-		s[count] = '\0';
-
-		(l->i) += count;										/* Increment line index */
-
-		return s;
-	}
-
-	return NULL;
-}
-
-operand *getOperand(line *l)
-{
-
-}
-
-/* skipWhite: Skips white spaces and tabs in line */
-void skipWhite(line *l)
-{
-	char c;
-
-	while((c = l->data[l->i]) != '\n')
-		if (c == ' ' || c == '\t')
-			l->i++;
-		else
-			break;
-}
-
-/* 
- * sSkipWhite: Recieve string s and pointer to index i
- * and increment i to the first non-white space in s
- * Assumes i is in valid range of s
- */
-void sSkipWhite(char *s, int *i)
-{
-	while (s[*i] == '\t' || s[*i] == ' ')
-		(*i)++;
-}
-
-/* 
- * dismiss White:	Receive string and removes white spaces
- * before and at the end of the string
- */
-char *dismissWhite(char *s)
-{
-	int n,i,j;
-	char *new;
-	
-	n = strlen(s);
-	while (n)
-	{							/* Decrement last char if it is white */
-		if (s[n-1] == ' ' || s[n-1] == '\t')
-			n--;
-		else
-			break;
-	}
-		
-	i = 0;
-	while(i < n)
-	{							/* Increment i to skip whitespaces */
-		if (s[i] == ' ' || s[i] == '\t')
-			i++;
-		else
-			break;
-	}
-	
-	new = malloc(sizeof(char)*(n-i+1));
-	if (!new)
-	{
-		printf(stderr, "Error: Not enough memory. Exiting...\n");
-		exit(EXIT_FAILURE);
-	}
-	
-	/* Copy relevant string to return */
-	for (j=0; j<(n-1); j++)
-		new[j] = s[i+j];
-	new[j] = '\0';
-	
-	return new;
-}
-
-/* isSymbol:	returns TRUE_RETURN if symbol declaration */
-int isSymbol(char *s)
-{
-	int n = strlen(s);
-	if (s[n-1] == ':')
-		return TRUE_RETURN;
-	else
-		return FALSE_RETURN;
-}
-
-/* checkEmpty: Check if line is empty and proceed to first non-blank char
- * returns 1 if empty line otherwise returns 0 */
-int checkEmpty(line *l)
-{
-	skipWhite(l);
-	if (l->data[l->i] == '\n')
-		return 1;
-	else
-		return 0;
-}
-
-/* resetEOL: set EOL flag in l to off */
-void resetEOL(line *l)
-{
-	l->flags &= ~EOL;
-}
 
 /* removeColon:	Removes colon from label */
 void removeColon(char *symbolName)
@@ -249,6 +47,7 @@ enum errorsShort checkSymbol(char *symbol)
 		return NON_ERROR;
 }
 
+
 /* getLineType: Returns line type:
  * COMMAND/DATA/STRING/STRUCT/ENTRY/EXTERN/UNKNOWN
  */
@@ -285,57 +84,37 @@ command *getCommand(char *cmd)
 	return c;
 }
 
-/* isEOL:		Check for end of line */
-int isEOL(line *l)
+
+/* isSymbol:	returns TRUE if symbol declaration */
+int isSymbol(char *s)
 {
-	skipWhite(l);
-	if (l->data[l->i] == '\n')			/* if reached \n */
-		return 1;
+	int n = strlen(s);
+	if (s[n-1] == ':')
+		return TRUE;
 	else
-		return 0;
+		return FALSE;
+}
+
+/* isRegister:	check if s is register name */
+int isRegister(char *s)
+{
+	int num;
+
+	if (strlen(p)n != 2)	/* If length is not 2 it is not register name */
+		return FALSE;
+	else if (p[0] != 'r')	/* First char must be 'r' */
+		return FALSE;
+	else if (p[1] > '7' || p[1] < '0')	/* Second char must be digit 0-7 */
+		return FALSE;
+	else
+		return TRUE;
 }
 
 
-
-/* 
- * getRegisterNum:	Returns register number if is register
- * otherwize returns  FALSE_RETURN;
- */
-int getRegisterNum(char *p)
-{
-	int n, num;
-	char *name;
-	
-	name = dismissWhite(p);		/* Remove white spaces if exists (Dynamic alloc)*/
-	n = strlen(name);					/* Get name length */
-	
-	if (n != 2)								/* If length is not 2 it is not register name */
-		num = FALSE_RETURN;
-	else if (name[0] != 'r')	/* First char must be 'r' */
-		num = FALSE_RETURN;
-	else if (name[1] > '7' || name[1] < '0')	/* Second char must be digit 0-7 */
-		num = FALSE_RETURN;
-	else
-		num = name[1]-'0';			/* Find reg number */
-	
-	free(name);								/* Memory release */
-	
-	return num;
-}
-
-
-int checkComma(line *l)
-{
-	skipWhite(l);
-	if (l->data[l->i] == ',')
-		return TRUE_RETURN;
-	else
-		return FALSE_RETURN;
-}
 
 /* isValidNum: Check if string s is valid number
  * Prints to stderr if is not valid */
-int isValidNum(char *s, int line)
+enum errorsShort isValidNum(char *s)
 {
 	int i, count;
 	count = i = 0;
@@ -344,30 +123,126 @@ int isValidNum(char *s, int line)
 	if (s[i] == '+' || s[i] == '-')
 	{
 		i++;
-		/* Check if received lonely sign */
-		if (s[i] == '\0')
-		{
-			lerror("Received sign without number", line);
-			return FALSE_RETURN;
-		}
+		if (s[i] == '\0')	/* sign without number */
+			return ERR_PARAM_SIGN;
 	}
 
 	while (s[i] != '\0')
 	{
 		if(isdigit(s[i]))
 			i++;
-		else
-		{
-			lerror("Invalid character", line);
-			return FALSE_RETURN;
-		}
+		else	/* Invalid chracter */
+			return ERR_PARAM_CHAR;
 	}
 
-	if(checkData(atoi(s)))		/* Check if number is in hardware's range */
-		return TRUE_RETURN;
+	i = atoi(s);
+	if(i<=MAX_NUMBER && i >= MIN_MUNBER)		/* Check if number is in hardware's range */
+		return NON_ERROR;
 	else
-	{
-		lerror("Data parameter is too big.", line);
-		return FALSE_RETURN;
-	}
+		return ERR_PARAM_BIG;
 }
+
+/* Check cmd parameter s if it is struct */
+int isStruct(char *s)
+{
+	int i = 0;
+
+	/* Check for dot */
+	while(s[i] != '\0')
+	{
+		if (s[i] == '.')
+			break;
+		i++;
+	}
+
+	if (s[i] == '\0') /* Not struct */
+		return FALSE;
+	else	/* s[i] == '.' */
+	{
+		if ((s[i+1] != '\0') &&							/* Check if in string limit */
+				(s[i+1] == '1' || s[i+1] == '2') &&		/* Check if call for struct member */
+				(s[i+2] == '\0'))						/* Check if no invalid chars after struct */
+			return TRUE;
+	}
+	return FALSE;
+}
+
+
+enum errorsShort checkStructName(char *s)
+{
+	int n;
+
+	n = strlen(s);	/* Get string lengthe */
+
+	/* Ignore struct member access ie. .1 or .2
+	 * to receive symbol name to check validity */
+	s[n-2] = '\0';
+
+	/* Check symbol name validity */
+	if(checkSymbol(s) != NON_ERROR)
+		return ERR_STRUCT_NAME;
+	else
+		return NON_ERROR;
+}
+
+/* calcInstructions:	Calculate number of instructions
+ * based on operators left in line
+ */
+int calcInstructions(instruction *inst)
+{
+	enum addressingType op1Type, op2Type;
+	int i = 1;
+
+	op1Type = inst->op1->type;
+	op2Type = inst->op20>type;
+
+	/*
+	 * Increment i by type of addresing type:
+	 *	All but struct required 1 additional word
+	 *	Struct required 2 additional words.
+	 *	If both are REGISTER they can share the same word
+	  */
+	switch(op1Type)
+	{
+	case EMPTY:
+		break;
+	case REGISTER:
+	case IMMEDIATE:
+	case DIRECT:
+		i++;
+		break;
+	case STRUCT_ADD:
+		i += 2;
+	}
+
+	switch(op2Type)
+	{
+	case EMPTY:
+		break;
+	case REGISTER:
+		if (op1Tryp != REGISTER)
+			i++;											/* If op1Type is REGISTER it use */
+		break;											/* the same additional word */
+	case IMMEDIATE:
+	case DIRECT:
+		i++;
+		break;
+	case STRUCT_ADD:
+		i += 2;
+	}
+
+	return i;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
