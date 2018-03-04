@@ -1,4 +1,14 @@
+/* 
+ * File:    symbol.h
+ * Author:  Moshe Hamiel
+ * ID:      308238716
+ *
+ * Contains function declerations of symbol.c
+ * 
+ */
+
 #ifndef SYMBOL_H
+#define SYMBOL_H
 
 /******************** Extern symbol table decleration ***********************/
 #ifndef SYMBOL_C
@@ -9,7 +19,7 @@ extern symbol *symTable[HASHSIZE];
 /************************* Constants definition ****************************/
 #define HASHSIZE 101
 
-/************************* 	Structs definition 	****************************/
+/*********************** Structs definition **************************/
 typedef struct {
 	char name[MAX_LABEL_LEN];		/* Symbol name */
 	int address;								/* Address in memory */
@@ -17,13 +27,14 @@ typedef struct {
 	symbol *next;								/* Next symbol in chain */
 } symbol;
 
-/*********************** 	Functions Declerations 	**************************/
+/********************* 	Functions Declerations 	************************/
 unsigned int hash(char *s);
 symbol *symLookup(char *s);
 symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType);
 char *strdup(char *s);
 void symTableInit();
 void freeSymbol(symbol *s);
-
+void symbolsAddressAdd(int x);
+void addressUpdate(symbol *s, int x);
 
 #endif

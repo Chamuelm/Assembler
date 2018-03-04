@@ -1,4 +1,15 @@
+/* 
+ * File:    symbol.c
+ * Author:  Moshe Hamiel
+ * ID:      308238716
+ *
+ * Contains symbols table decleration and functions related.
+ * Symbols table is a hash table with the size HASHSIZE which is
+ * declared in symbol.h file
+ * 
+ */
 #define SYMBOL_C
+#include "symbol.h"
 #include "assembler.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,7 +38,7 @@ symbol *symLookup(char *s)
 }
 
 /* addSymbol:	add new symbol to symbols table */
-symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType)
+symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType )
 {
 	symbol *np;
 	unsigned hashval;
@@ -39,11 +50,15 @@ symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType)
 			exitMemory();	/* Exit if memory allocation failed */
 		
 		/* Put in symbol table by hash */
-		hashval = hash(name);
+		hashval = hash(newName);
 		np->next = symTable[hashval];
 		np->address = newAddress;
 		np->type = newType;
 		symTable[hashval] = np;
+                
+                /* Address update by first memory address if symbol is not external */
+                if (newType != EXTERN)
+                    np->address += MEMORY_START_ADDRESS;
 	}
 	else						/* Symbol already exist! */
 		return NULL;
@@ -67,7 +82,7 @@ void removeSymbol(symbol *toRemove)
 	symbol *prev, *np;
 
 	prev = NULL;
-	h = hash(s);
+	h = hash(toRemove->name);
 
 	/* lookup in symbol table to find previous */
 	for(np = symTable[h]; np!=NULL; np = np->next)
@@ -95,7 +110,7 @@ void symTableInit()
 {
 	int i;
 
-	for(i=0; i < HASHSIZE; i++
+	for(i=0; i < HASHSIZE; i++)
 	{
 			if(symTable[i] != NULL)
 			{
@@ -112,4 +127,26 @@ void freeSymbol(symbol *s)
 		freeSymbol(s->next);
 	free(s->name);					/* Free name pointer */
 	free(s);								/* Free symbol pointer */
+}
+
+/* symbolAddressAdd: adds x to non-external symbols' address */
+void symbolsAddressAdd(int x)
+{
+    int i;
+    
+    for(i=0; i < HASHSIZE; i++)
+    {
+        if(symTable[i] != NULL)
+            addressUpdate(symTable[i], x);
+    }
+}
+
+/* Updates symbol s address with addition of x if not external and continue to chained symbols */
+void addressUpdate(symbol *s, int x)
+{
+    	if (s->next != NULL)		/* If chained to more symbols recursivly update them as well */
+		addressUpdate(s->next, x);
+	
+        if (s->type != EXTERN)
+            s->address += x;
 }

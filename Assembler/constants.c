@@ -1,3 +1,15 @@
+/* 
+ * File:    constants.c
+ * Author:  Moshe Hamiel
+ * ID:      308238716
+ *
+ * Contains constants for use in functions  
+ * 
+ */
+
+#define CONSTANTS_C
+#include <stdio.h>
+
 /*
  * Constant array contain error messages to use in lerror and lwarning functions.
  */
@@ -13,6 +25,7 @@ const char const *errorsTab[] = {
 		"Invalid label: must start with letter",
 		"Invalid label: contains non-alphanumeric characters",
 		"Invalid label: assigned to entry instruction",
+                "Invalid label: assigned to extern instruction",
 		"Invalid parameter: received sign without number",
 		"Invalid parameter: received invalid character",
 		"Invalid parameter: number is too big and not supported",
@@ -25,7 +38,10 @@ const char const *errorsTab[] = {
 		"Invalid parameter: missing number",
 		"Line length is not supported",
 		"Unknown command",
-		"Invalid text/parameters after command"
+		"Invalid text/parameters after command",
+                "Expected \" (Quotation marks) in end of line",
+                "Missing string parameter",
+                "Invalid string parameter, String must be in quotation marks"
 };
 
 /* CPU commands:
@@ -35,7 +51,7 @@ const char const *errorsTab[] = {
  * 	SrcAdd		Source addressing types allowed (Described in enum allowedAddTypes in assembler.h)
  * 	DestAdd		Destination addressing types allowed
  *  */
-const command CPUCommands[] = {
+const operatorNode CPUCommands[] = {
 /* 		Name  		Opcode  Operators  	SrcAdd	 		DestAdd	  */
 		{"mov",		0,		2,			ALL_ADD,		REG_ADD},
 		{"cmp",		1,		2,			ALL_ADD,		ALL_ADD},
@@ -53,4 +69,18 @@ const command CPUCommands[] = {
 		{"jsr",		13,		1,			NONE,			REG_ADD},
 		{"rts",		14,		0,			NONE,			NONE},
 		{"stop",	15,		0,			NONE,			NONE}
+};
+
+/*
+ * Constant array contain assembly keywords.
+ * Not contains command names and register names
+ * which are keywords too
+ */
+const char const *keywordTab[] = {
+		".data",
+                ".struct",
+                ".extern",
+                ".string",
+                ".entry",
+                NULL
 };

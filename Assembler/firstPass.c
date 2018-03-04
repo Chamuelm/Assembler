@@ -1,21 +1,32 @@
+/* 
+ * File:    firstPass.c
+ * Author:  Moshe Hamiel
+ * ID:      308238716
+ *
+ * Contains functions related to first pass of the assembler on input file
+ * 
+ */
 #include "assembler.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+
 /* firstPass: process first pass on current active file */
 int firstPass()
 {
-	int isValidSymbol;							/* Symbol flag */
-	int lineC;											/* Line counter */
-	/* Temporary variables */
+	int isValidSymbol;			/* Symbol flag */
+	int lineC;				/* Line counter */
+	
+        /* Temporary variables */
 	enum errorsShort err;
 	enum lineTypes lType;
 	char *word;
 	symbol *sym;
 	line *currLine;
 
-	lineC = 0;											/* Line counter initialize */
+        /* Line counter initialize */
+	lineC = 0;
 
 	/* Processing each line */
 	while (fgets(currLine->data, MAX_LINE_LEN, fp)) {
@@ -66,21 +77,29 @@ int firstPass()
 		/***************** Symbol data update if needed *****************/
 		if(isValidSymbol)
 		{
-			switch(lType)
-			{
+                    switch(lType)
+                    {
 			case COMMAND:
-				sym->type = COMMAND;
-				sym->address = IC;
-				break;
+                            sym->type = COMMAND;
+                            sym->address = IC;
+                            break;
 			case DATA: case STRING: case STRUCT:
-				sym->type = DATA;
-				sym->address = DC;
-				break;
-			case entry:
-				lwarning(ERR_LABEL_ENTRY, lineC);
-				removeSymbol(sym);
-				break;
-			}
+                            sym->type = DATA;
+                            sym->address = DC;
+                            break;
+			case ENTRY:
+                             /* Print warning if label attached to entry 
+                              and remove from symbol table */
+                            lwarning(ERR_LABEL_ENTRY, lineC);
+                            removeSymbol(sym);
+                            break;
+                        case EXTERN:
+                            /* Print error if label attached to entry 
+                              and remove from symbol table */
+                            lerror(ERR_LABEL_EXTERN, lineC);
+                            removeSymbol(sym);
+                            break;
+                    }
 		}
 
 		/******************* Continue line processing *******************/
@@ -108,22 +127,26 @@ int firstPass()
 		free(word);
 		free(currLine);
 	}
+        
+        /* Update symbols address by IC to all external symbols address */
+        symbolsAddressAdd(DC);
 }
 
 
 void procCommand(line *l, char *word)
 {
-	command *c;
+	operatorNode *c;
 	operand *op1, *op2;
 	c = getCommand(word);
 
-	switch(c->operatorsNum)
+        /* Continue process by number of parameters needed */
+	switch(c->operatorsNum) 
 	{
 	case 0:
 		/* Check number of parameters */
 		if(!isEOL(l))
 		{
-			lerror(ERR_MORE_PARM0, l->lineNum);
+			lerror(ERR_MORE_PARAM0, l->lineNum);
 			return;
 		}
 		else
@@ -176,7 +199,7 @@ void procCommand(line *l, char *word)
 			lerror(ERR_MISS_PARAM, l->lineNum);	/* Missing operand */
 		else
 		{
-			if(!getComma(l))	/* look for comma between parameters */
+			if(!checkComma(l))	/* look for comma between parameters */
 			{
 				op2 = getOperand(l);
 				if(!op2)	/* If no comma and not operand */
@@ -212,11 +235,11 @@ void procCommand(line *l, char *word)
  * */
 int addData(int val)
 {
-	if (DC < MAX_INSTRUCTIONS)
+	if (DC < MAX_INSTRUCTIONS) /* Check for space in data array */
 	{
 		if (val > 0)	/* Turn sign bit off */
 			dataArr[DC++] = val&(~SIGN_BIT_MASK);
-		else					/* Turn sign bit on */
+		else		/* Turn sign bit on */
 			dataArr[DC++] = val|SIGN_BIT_MASK;
 	}
 	else
@@ -226,24 +249,28 @@ int addData(int val)
 	}
 }
 
-void addInstruction(command c, operand operand1, operand operand2, int lineNumber)
+/* addinstruction: Add instruction node to instructions array
+ * and calculate number of actual assembly instructions and adds to
+ * instructions counter IC
+ */
+void addInstruction(operatorNode c, operand operand1, operand operand2, int lineNumber)
 {
 	instArr[instIndex].cmd = c;
-	insrArr[instIndex].op1 = operand1;
-	insrArr[instIndex].op2 = operand2;
-	insrArr[instIndex].lineNum = lineNumber;
+	instArr[instIndex].op1 = operand1;
+	instArr[instIndex].op2 = operand2;
+	instArr[instIndex].lineNum = lineNumber;
 
-	IC += caclinstructions(instArr[instIndex]);	/* Instructions counter increment */
-	instIndex++;								/* Instructions array index increment */
+	IC += calcInstructions(instArr[instIndex]);	/* Instructions counter increment */
+	instIndex++;					/* Instructions array index increment */
 }
 
 
-
-
-/* procData:	Stores data in data table, increment DC, and check for errors */ 
+/* procData:	Stores data in data table (number), 
+ * increment DC, and check for errors */ 
 void procData(line *l)
 {
-	char *p;						/* Temp string pointer */
+	char *p;			/* Temp string pointer */
+        enum errorsShort err;           /* error type holder */
 
 	skipWhite(l);
 
@@ -255,10 +282,17 @@ void procData(line *l)
 	}
 
 	/* Receive tokens separated by commas */
-	while (p = strtok((l->data)+(l->i), ","))
+        p = strtok((l->data)+(l->i), ",");
+	while (p)
 	{
-		if(isValidDataNum(p, l->lineNum))
-			addData(atoi(p));
+            err = isValidNum(p);
+            if (err == NON_ERROR)
+                addData(atoi(p));
+            else
+                lerror(err, l->lineNum);
+            
+            /* Get next token */
+            p = strtok(NULL, ",");
 	}
 }
 
@@ -286,15 +320,15 @@ void procString(line *l)
 
 		if (c == '\n')	/* Error if not received closing quotation mark */
 		{
-			lerror("Expected \" (Quotation marks) in end of line", l->lineNum);
+			lerror(ERR_STR_CLOSE, l->lineNum);
 		}
 	}
 	else	/* Error detection */
 	{
-		if (c == '\n')
-			lerror("Missing string parameter", l->lineNum);
-		else
-			lerror("Invalid string parameter, String must be in quotation marks", l->lineNum);
+		if (c == '\n')  /* No string parameter */
+			lerror(ERR_STR_MISS, l->lineNum);
+		else            /* String is not in qoutation marks */
+			lerror(ERR_STR_QMARK, l->lineNum);
 	}
 }
 
@@ -305,14 +339,14 @@ void procStruct(line *l)
 
 	if (checkComma(l))		/* Received comma before parameter */
 	{
-		lerror("Extra comma before parameter", l->lineNum);
+		lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
 		l->i++;
 	}
 
 	temp = getParameter(l);
 	if (!temp)
 	{
-		lerror("Missing parameter", l->lineNum);
+		lerror(ERR_MISS_PARAM, l->lineNum);
 		return;
 	}
 
@@ -326,24 +360,31 @@ void procStruct(line *l)
 	if (checkComma(l))
 		l->i++;
 	else
-		lerror("Expected comma", l->lineNum);
+		lerror(ERR_COMMA_EXPECTED, l->lineNum);
 
 	/* Process struct's string */
 	procString(l);
 }
 
-/* procExtern:	Stores externs in data table, increment DC, and check for errors */
+/* procExtern:	Stores externs in data table and check for errors */
 void procExtern(line *l)
 {
-	char *c;
+	char *str;
+        enum errorsShort err;
 
 	if (checkComma(l))
 	{
-		lerror("Invalid comma before parameter", l->lineNum);
+		lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
 		l->i++;
 	}
-	while (c = getParameter(l))
+	while (str = getParameter(l))
 	{
-		if
+            err = checkSymbol(str);
+            if (err == NON_ERROR)
+                addSymbol(str, EXTERN_DEFAULT_ADD, EXTERN);
+            else
+                lerror(err, l->lineNum);
+            
+            free(str);
 	}
 }

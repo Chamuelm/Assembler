@@ -1,7 +1,7 @@
 /* procCommand: process command line */
 void procCommand(line *l, char *cmdName)
 {
-	command *c;
+	operatorNode *c;
 	operand o1, o2;
 
 	c = checkCommand(cmdName);

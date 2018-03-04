@@ -6,6 +6,7 @@
  *      ID:		308238716
  */
 #include "assembler.h"
+#include <stdio.h>
 
 
 /* lineInit: Initialize line structure
@@ -87,7 +88,7 @@ char *getParameter(line *l)
 		strncpy(s, (l->data)+(l->i), count); /* Copy parameter */
 		s[count] = '\0';
 
-		(l->i) += count;										/* Increment line index */
+		(l->i) += count;		/* Increment line index */
 
 		return s;
 	}
@@ -148,8 +149,8 @@ operand *getOperand(line *l)
 	/************ Addressing Type: STRUCT ************/
 	else if(isStruct(s))
 	{
-		if(checkStruct(s))
-		op->data = s;
+		if(checkStructName(s))
+                    op->data = s;
 		op->type = STRUCT_ADD;
 	}
 	/************ Addressing Type: STRUCT ************/
