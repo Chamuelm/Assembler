@@ -21,10 +21,11 @@ extern symbol *symTable[HASHSIZE];
 
 /*********************** Structs definition **************************/
 typedef struct {
-	char name[MAX_LABEL_LEN];		/* Symbol name */
-	int address;								/* Address in memory */
-	enum lineTypes type;				/* Symbol type (COMMAND/DATA/EXTERN) */
-	symbol *next;								/* Next symbol in chain */
+	char name[MAX_LABEL_LEN];	/* Symbol name */
+	int address;			/* Address in memory */
+	enum lineTypes type;            /* Symbol type (COMMAND/DATA/EXTERN) */
+        unsigned int isEntry : 1;       /* flag if is entry */
+	symbol *next;                   /* Next symbol in chain */
 } symbol;
 
 /********************* 	Functions Declerations 	************************/

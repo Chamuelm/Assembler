@@ -35,7 +35,7 @@ extern int IC; 					/* Instructions counter */
 extern int DC; 					/* Data Counter */
 extern int errorsDetected; 			/* Errors flag */
 extern FILE *fp; 				/* Active file pointer */
-extern char *fileName; 				/* Active file name */
+extern char *fileName; 				/* Name of active file */
 #endif
 
 /***************** Constants in constants.c declerations ********************/
@@ -48,6 +48,7 @@ extern const char const *keywordTab[];          /* Keywords table */
 /*************************** Headers Inclutions ******************************/
 #include "main.h"
 #include "firstPass.h"
+#include "secondPass.h"
 #include "symbol.h"
 #include "errors.h"
 #include "utils.h"
@@ -112,12 +113,8 @@ typedef struct {
 /* Holds line information to pass between functions */
 typedef struct {
 	char data[MAX_LINE_LEN];            /* Contains actual line */
-	unsigned int flags : 6;             /* Flags as described below */
 	int lineNum;                        /* Line number in file */
 	int i;                              /* Line index */
-	int symbolAddress;                  /* Holds address if symbol */
-	enum lineTypes lineType;            /* Line type */
-	char symbolName[MAX_LABEL_LEN];     /* Symbol name if exist */
 } line;
 
 

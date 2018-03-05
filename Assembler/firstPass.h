@@ -10,7 +10,7 @@
 #ifndef FIRSTPASS_H
 #define FIRSTPASS_H
 
-int firstPass();
+void firstPass();
 void procCommand(line *l, char *word);
 int addData(int val);
 void addInstruction(operatorNode c, operand operand1, operand operand2, int lineNumber);
