@@ -24,6 +24,17 @@
 #define TRUE	1                   /* Return value is true or valid */
 #define CPU_COMMANDS_NUM 16         /* Number of CPU command available */
 #define MEMORY_START_ADDRESS 100    /* First address in memory to use */
+#define OB_SUFFIX_LEN 3             /* Length of suffix for object file include '.' */
+#define ENT_SUFFIX_LEN 4            /* Length of suffix for entry file include '.' */
+#define EXT_SUFFIX_LEN 4            /* Length of suffix for externals file include '.' */
+#define BASE_32_LEN 2               /* Length of 10-bit number in Strange 32 Base */
+#define BITS_MASK_10BITS 1023       /* Mask to ignore higher bits than first 10 */
+#define BITS_MASK_5BITS 31          /* Mask to ignore higher bits than first 5 */
+
+#define CODE_OPCODE_LOC 6           /* Start bit of opcode location in coded instruction */
+#define CODE_SRC_OP_LOC 4           /* Start bit of source addressing type location in coded instruction */
+#define CODE_DEST_OP_LOC 2          /* Start bit of destination addressing type location in coded instruction */
+#define CODE_DATA_LOC 2             /* Start bit of data location in additional words */
 
 
 /******************** Main structure global variables ***********************/
@@ -43,6 +54,7 @@ extern char *fileName; 				/* Name of active file */
 extern const char const *errorsTab[];           /* Errors constants table */
 extern const operatorNode CPUCommands[];        /* Commands constants table */
 extern const char const *keywordTab[];          /* Keywords table */
+extern const char const base32Digit[];          /* Strange Base-32 digits */
 #endif
 
 /*************************** Headers Inclutions ******************************/
@@ -85,6 +97,14 @@ enum lineTypes {
 	COMMAND, DATA, STRING, STRUCT, ENTRY, EXTERN, UNKNOWN
 };
 
+/* Code words coding types:
+ *      ABSOLUTE        Address won't change after program load 
+ *      EXTERNAL        Data is depend on external information
+ *      RELOCATABLE     Address depend on memory address received while 
+ *                      program loaded
+*/ 
+enum codingType {ABSOLUTE, EXTERNAL, RELOCATABLE};
+
 /************************** Structs declerations *****************************/
 
 
@@ -108,6 +128,8 @@ typedef struct {
 	operatorNode *cmd;                  /* Command pointer */
 	operand *op1, *op2;                 /* Operands of this instruction */
 	int lineNum;                        /* Line number in source file */
+        int addressOffset;                  /* Holds start address of instructions line 
+                                             * offset is from MEMORY_START_ADDRESS */
 } instruction;
 
 /* Holds line information to pass between functions */

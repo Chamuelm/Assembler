@@ -202,7 +202,7 @@ int isStruct(char *s) {
 enum errorsShort checkStructName(char *s) {
     int n;
     
-    n = strlen(s);	/* Get string lengthe */
+    n = strlen(s);	/* Get string length */
     
     /* Ignore struct member access ie. .1 or .2
      * to receive symbol name to check validity */
@@ -213,6 +213,8 @@ enum errorsShort checkStructName(char *s) {
         return ERR_STRUCT_NAME;
     else
         return NON_ERROR;
+    
+    s[n-2] == '.';  /* Retrive membre access */
 }
 
 

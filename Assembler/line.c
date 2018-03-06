@@ -138,7 +138,7 @@ operand *getOperand(line *l) {
         if(strlen(s) == 0) {		/* '#' without number */
             lerror(ERR_PARAM_NO_NUM, l->lineNum);
             invalid = 1;
-        } else if((err =isValidNum(s)) == NON_ERROR) {	/* Check number validity */
+        } else if((err=isValidNum(s)) == NON_ERROR) {	/* Check number validity */
             op->type = IMMEDIATE;
             op->data = s;
             return op;
@@ -152,13 +152,6 @@ operand *getOperand(line *l) {
     {
         op->data = s;
         op->type = REG_ADD;
-    }
-    /************ Addressing Type: STRUCT ************/
-    else if(isStruct(s))
-    {
-        if(checkStructName(s))
-            op->data = s;
-        op->type = STRUCT_ADD;
     }
     /************ Addressing Type: STRUCT ************/
     else if(isStruct(s))

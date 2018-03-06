@@ -39,6 +39,10 @@ void firstPass() {
         if (!word) /* Empty line */
             continue;	/* Skip to next line */
         
+        /* Check if line is comment */
+        if (word[0] == ';')
+            continue;
+        
         /* if it is a symbol declaration check symbol
          * validity and get next word in line
          */
@@ -231,6 +235,7 @@ void addInstruction(operatorNode c, operand operand1, operand operand2, int line
     instArr[instIndex].op1 = operand1;
     instArr[instIndex].op2 = operand2;
     instArr[instIndex].lineNum = lineNumber;
+    instArr[instIndex].addressOffset = IC;
     
     IC += calcInstructions(instArr[instIndex]);	/* Instructions counter increment */
     instIndex++;					/* Instructions array index increment */

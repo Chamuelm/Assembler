@@ -86,3 +86,8 @@ const char const *keywordTab[] = {
     ".entry",
     NULL
 };
+
+/* Charcters of 'Strange Base-32' */
+const char const base32Digit[] = {'!', '@', '#', '%', '^', '&', '*', '<', '>',
+'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+'p', 'q', 'r', 's', 't', 'u', 'v' };
