@@ -50,7 +50,7 @@ void firstPass() {
             removeColon(word);
             if ((err = checkSymbol(word)) == NON_ERROR) {
                 isValidSymbol = 1;
-                sym = addSymbol(word, EMPTY_ADDRESS, UNKNOWN);
+                sym = addSymbol(word, EXTERNAL_ADDRESS, UNKNOWN);
             } else {
                 isValidSymbol = 0;
                 lerror(err,lineC);
@@ -235,7 +235,7 @@ void addInstruction(operatorNode c, operand operand1, operand operand2, int line
     instArr[instIndex].op1 = operand1;
     instArr[instIndex].op2 = operand2;
     instArr[instIndex].lineNum = lineNumber;
-    instArr[instIndex].addressOffset = IC;
+    instArr[instIndex].memAddress = MEMORY_START_ADDRESS+IC;
     
     IC += calcInstructions(instArr[instIndex]);	/* Instructions counter increment */
     instIndex++;					/* Instructions array index increment */
@@ -341,7 +341,7 @@ void procExtern(line *l) {
     while (str = getParameter(l)) {
         err = checkSymbol(str);
         if (err == NON_ERROR)
-            addSymbol(str, EMPTY_ADDRESS, EXTERN);
+            addSymbol(str, EXTERNAL_ADDRESS, EXTERN);
         else
             lerror(err, l->lineNum);
         

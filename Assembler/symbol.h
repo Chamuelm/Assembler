@@ -19,7 +19,7 @@ extern symbol *symTable[HASHSIZE];
 /************************* Constants definition ****************************/
 #define HASHSIZE 101
 
-/*********************** Structs definition **************************/
+/*********************** Struct definition **************************/
 typedef struct {
 	char name[MAX_LABEL_LEN];	/* Symbol name */
 	int address;			/* Address in memory */

@@ -19,7 +19,7 @@
 #define MAX_NUMBER	512         /* Maximum number allowed in computer' hardware */
 #define MIN_MUNBER	-512        /* Minimum number allowed in computer' hardware */
 #define SIGN_BIT_MASK	1024        /* Bit mask of sign bit in 10-bit number */
-#define EMPTY_ADDRESS 0             /* Empty address and default for externs*/
+#define EXTERNAL_ADDRESS 0             /* Empty address and default for externs*/
 #define FALSE	0                   /* Return value is false or invalid */
 #define TRUE	1                   /* Return value is true or valid */
 #define CPU_COMMANDS_NUM 16         /* Number of CPU command available */
@@ -45,6 +45,8 @@ extern int dataArr[MAX_INSTRUCTIONS]; 		/* Data Array */
 extern int IC; 					/* Instructions counter */
 extern int DC; 					/* Data Counter */
 extern int errorsDetected; 			/* Errors flag */
+extern int entryExist;                          /* Entry existance flag */
+extern int externExist;                         /* Extern existance flag */
 extern FILE *fp; 				/* Active file pointer */
 extern char *fileName; 				/* Name of active file */
 #endif
@@ -81,7 +83,7 @@ extern const char const base32Digit[];          /* Strange Base-32 digits */
  */
 enum addressingType {
 	IMMEDIATE = 1, DIRECT = 2, STRUCT_ADD = 4,
-        REGISTER = 8, EMPTY = 16, INVALID_ADD_TYPE = 32
+        REGISTER = 8, EMPTY = 16
 };
 
 /* Allowed addressing types to use in commands struct */ 
@@ -128,8 +130,7 @@ typedef struct {
 	operatorNode *cmd;                  /* Command pointer */
 	operand *op1, *op2;                 /* Operands of this instruction */
 	int lineNum;                        /* Line number in source file */
-        int addressOffset;                  /* Holds start address of instructions line 
-                                             * offset is from MEMORY_START_ADDRESS */
+        int memAddress;                     /* Address in memory */
 } instruction;
 
 /* Holds line information to pass between functions */

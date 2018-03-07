@@ -127,11 +127,13 @@ void symbolsAddressAdd(int x) {
     }
 }
 
-/* Updates symbol s address with addition of x if not external and continue to chained symbols */
+/* Updates symbol s address with addition of x if internal variable 
+ * and continue to chained symbols */
 void addressUpdate(symbol *s, int x) {
     if (s->next != NULL)		/* If chained to more symbols recursivly update them as well */
         addressUpdate(s->next, x);
     
-    if (s->type != EXTERN)
+    /* Adds to internals variables */
+    if ((s->type != EXTERN) && (s->type != COMMAND))
         s->address += x;
 }

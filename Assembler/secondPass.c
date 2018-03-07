@@ -57,11 +57,20 @@ void secondPass() {
         /******************** Actual line processing ********************/
         lType = getLineType(word);
         
-        /* If is entry 
-         * Skip other line types as there is 
-                 * nothing more to process */
-        if (lType == ENTRY)
+        /* If is entry - check if parameters are internal variable
+         * and mark entry existance flag
+         */
+        if (lType == ENTRY) {
             procEntry2(currLine);
+            entryExist = 1;
+        }
+        
+        /* If is extern - mark external existance flag */
+        if (lType == EXTERN)
+            externExist = 1;
+            
+        /* Skip other line types as there is 
+           nothing more to process */
         
         /* Memory release */
         free(word);

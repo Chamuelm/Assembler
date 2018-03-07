@@ -179,7 +179,7 @@ operand *getOperand(line *l) {
     }
     
     if (invalid) {
-        op->type = INVALID_ADD_TYPE;
+        op->type = EMPTY;
         op->data = s;
     }
     

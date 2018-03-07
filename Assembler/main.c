@@ -25,6 +25,8 @@ int dataArr[MAX_INSTRUCTIONS];          /* Data Array */
 int IC;                                 /* Instructions counter */
 int DC;                                 /* Data Counter */
 int errorsDetected;                     /* Errors flag */
+int entryExist;                         /* Entry existance flag */
+int externExist;                        /* Extern existance flag */
 FILE *fp;                               /* Active file pointer */ 
 char *fileName;                         /* Name of active file */
 
@@ -50,8 +52,11 @@ int main(int argc, char *argv[]) {
 }
 
 void assembler(char *fileName, FILE *fp) {
-    IC = DC = instIndex = 0;				/* Counter initialization */
-    symTableInit();			/* Symbol table initialization */
+    IC = DC = 0;	/* Counter initialization */
+    instIndex = 0;      /* instructions' array index initialize */
+    entryExist = 0;     /* Entry existance flag initialization */
+    externExist = 0;    /* Extern existance flag initialization */
+    symTableInit();     /* Symbol table initialization */
     
     firstPass();
     secondPass();

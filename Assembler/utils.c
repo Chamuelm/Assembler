@@ -121,8 +121,6 @@ int isKeyword(char *s) {
 
 /* isRegister:	check if s is register name */
 int isRegister(char *s) {
-    int num;
-    
     if (strlen(s) != 2)	/* If length is not 2 it is not register name */
         return FALSE;
     else if (s[0] != 'r')	/* First char must be 'r' */
