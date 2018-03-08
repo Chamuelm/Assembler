@@ -21,6 +21,7 @@ enum errorsShort isValidNum(char *s);
 int isStruct(char *s);
 enum errorsShort checkStructName(char *s);
 int calcInstructions(instruction *inst);
+char *strdcat(char *dest, const char *addition);
 
 #endif /* UTILS_H */
 

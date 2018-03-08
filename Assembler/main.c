@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define MAIN_C
-#include "assembler.h"
+#include "./include/assembler.h"
 
 instruction instArr[MAX_INSTRUCTIONS];  /* Instructions array */
 int instIndex;                          /* Instructions array index */
@@ -31,37 +31,47 @@ FILE *fp;                               /* Active file pointer */
 char *fileName;                         /* Name of active file */
 
 int main(int argc, char *argv[]) {
-    if (argc == 1) {
-        fprintf(stderr, "Error: No input files entered.\n");
+    char *fullFileName;
+    
+    if (argc == 1) { /* No source files received */
+        fprintf(stderr, "Error: No source files entered.\n");
         printf("Usage: assembler file1 file2 ...\n");
         exit (EXIT_FAILURE);
     }
     
     while (--argc > 0) { /* Proccesing for each input file */
         fileName = ++argv;
-        fp = fopen(fileName, "r");
+        /* Cat file extension */
+        fullFileName = strdcat(fileName, sourceFileExtension);
+        
+        fp = fopen(fullFileName, "r");
         if (fp) { /* Check for valid file open */
-            errorsDetected = 0;
             assembler();
             fclose(fp);
         } else
             fprintf(stderr, "Error: file %s was not compiled: %s\n", fileName, strerror(errno));
+        
+        free(fullFileName);
     }
     
     return EXIT_SUCCESS;
 }
 
 void assembler(char *fileName, FILE *fp) {
+    /* Varaiables initialization */
     IC = DC = 0;	/* Counter initialization */
     instIndex = 0;      /* instructions' array index initialize */
     entryExist = 0;     /* Entry existance flag initialization */
     externExist = 0;    /* Extern existance flag initialization */
+    errorsDetected = 0; /* Errors flag initialization */
     symTableInit();     /* Symbol table initialization */
     
+    /* Main functions calls */
     firstPass();
     secondPass();
     
-    if (errorsDetected()) {
+    /* Exit if errors deceted, otherwise create output files */
+    if (errorsDetected) {
         fprintf(stderr, "File %s is not compiled due to the errors above.\n", fileName);
         return;
     } else {
@@ -80,13 +90,13 @@ void lerror(char *s, int lineNum) {
     errorsDetected++;
 }
 
-/* lwarning: Print warning message to stderr */
+/* lwarning:    Print warning message to stderr */
 void lwarning(char *s, int lineNum) {
     fprintf(stderr, "Warning, line %d: %s.\n", lineNum, s);
 }
 
 
-/* exitMemory:	exit the program if memory allocation was unsuccessful */
+/* exitMemory:	Exit the program if memory allocation was unsuccessful */
 void exitMemory() {
     fprintf(stderr, "Not enough memory. Exiting...\n");
     exit(EXIT_FAILURE);

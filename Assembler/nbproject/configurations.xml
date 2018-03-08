@@ -2,20 +2,23 @@
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
+      <df name="headers">
+        <in>firstPass.h</in>
+        <in>line.h</in>
+        <in>main.h</in>
+        <in>output.h</in>
+        <in>secondPass.h</in>
+        <in>utils.h</in>
+      </df>
       <in>constants.c</in>
       <in>firstPass.c</in>
-      <in>firstPass.h</in>
       <in>line.c</in>
-      <in>line.h</in>
       <in>main.c</in>
-      <in>main.h</in>
       <in>old.c</in>
       <in>output.c</in>
       <in>secondPass.c</in>
-      <in>secondPass.h</in>
       <in>symbol.c</in>
       <in>utils.c</in>
-      <in>utils.h</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -55,15 +58,21 @@
       </item>
       <item path="firstPass.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="firstPass.h" ex="false" tool="3" flavor2="0">
+      <item path="headers/firstPass.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="headers/line.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="headers/main.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="headers/output.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="headers/secondPass.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="headers/utils.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="line.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="line.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="main.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="old.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -71,13 +80,9 @@
       </item>
       <item path="secondPass.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="secondPass.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="symbol.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="utils.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="utils.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

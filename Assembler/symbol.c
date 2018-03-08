@@ -9,8 +9,7 @@
  * 
  */
 #define SYMBOL_C
-#include "symbol.h"
-#include "assembler.h"
+#include "./include/assembler.h"
 #include <stdlib.h>
 #include <stdio.h>
 

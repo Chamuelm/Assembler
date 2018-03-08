@@ -7,7 +7,7 @@
  * 
  */
 #include <stdio.h>
-#include "assembler.h"
+#include "./include/assembler.h"
 
 /* secondPass: process first pass on current active file:
  *  1.  For each line: if is entry check if exist and mark

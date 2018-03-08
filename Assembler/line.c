@@ -5,7 +5,7 @@
  *      Author: Moshe hamiel
  *      ID:		308238716
  */
-#include "assembler.h"
+#include "./include/assembler.h"
 #include <stdio.h>
 
 

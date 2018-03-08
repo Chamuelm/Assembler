@@ -9,7 +9,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
-#include "assembler.h"
+#include "./include/assembler.h"
 
 
 /* removeColon:	Removes colon from label */
@@ -261,4 +261,28 @@ int calcInstructions(instruction *inst) {
     }
     
     return i;
+}
+
+/* strdcat:     Concatanate addition to dest and take care for memory allocation. 
+ *              Returned value is dynamically allocated and have to be freed later.
+ */
+char *strdcat(char *dest, const char *addition) {
+    int newStringLen;
+    char *newString;
+    
+    /* Determine lengths */
+    newStringLen = strlen(dest);        /* Add length of dest */
+    newStringLen += strlen(addition);   /* Add length if addition */
+    newStringLen += 1;                  /* Add space for '\0' */
+    
+    /* Memory allocation */
+    newString = (char *)malloc(sizeof(char)*newStringLen);
+    if (!newString)
+        exitMemory();   /* Exit if memory allocation failed */
+    
+    /* Strings copy and concatenade */
+    strcpy(newString, dest);
+    strcat(newString, addition);
+    
+    return newString;
 }

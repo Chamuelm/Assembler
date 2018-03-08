@@ -5,7 +5,7 @@
  *      Author: Moshe hamiel
  *      ID:		308238716
  */
-#include "assembler.h"
+#include "./include/assembler.h"
 #include <stdio.h>
 #include <string.h> 
 
@@ -26,10 +26,7 @@ void createObjectsFile() {
     int i;
     
     /* Determine object file name */
-    obFileName = malloc(sizeof(char)*((strlen(fileName))+OB_SUFFIX_LEN));
-    if (!obFileName)
-        exitMemory();   /* memory allocation failed */
-    obFileName = strcat(obFileName, ".ob"); /* Add suffix to name */
+    obFileName = strdcat(fileName, objectFileExtension);
     
     /* Open object file */
     ob = fopen(obFileName, "w+");
@@ -37,6 +34,7 @@ void createObjectsFile() {
         fprintf(stderr, "Error: cannot create file %s: %s\n", obFileName, strerror(errno));
         exit(EXIT_FAILURE);
     }
+    free(obFileName);
     
     /* Add IC and DC to object file */
     intToBase32STR(IC, base32String1);
@@ -394,7 +392,7 @@ void createExtEntFiles() {
 
 /* fAddExtEnt:  Scan symbols table and add externals to ext or entries to 
  *              ent when occure */
-fAddExtEnt(symbol *sym, FILE *ext, FILE *ent) {
+void fAddExtEnt(symbol *sym, FILE *ext, FILE *ent) {
     char addressSTR[BASE_32_LEN+1]; /* +1 for '\0' */
     char wordSTR[BASE_32_LEN+1];
     
@@ -418,19 +416,16 @@ FILE *extFileOpen() {
     FILE *ext;
     
     /* Determine extern file name */
-    extFileName = malloc(sizeof(char)*((strlen(fileName))+EXT_SUFFIX_LEN));
-    if (!extFileName)
-        exitMemory();   /* memory allocation failed */
-    extFileName = strcpy(extFileName, fileName);    /* Copy file name */
-    extFileName = strcat(extFileName, ".ext");       /* Add suffix to name */
+    extFileName = strdcat(fileName, externFileExtension);
     
-    /* Open object file */
+    /* Open externals file */
     ext = fopen(extFileName, "w+");
     if (!ext) { /* If fopen fails print error and stop process */
         fprintf(stderr, "Error: cannot create file %s: %s\n", extFileName, strerror(errno));
         exit(EXIT_FAILURE);
     }
     
+    free(extFileName);
     return ext;
 }
 
@@ -441,11 +436,7 @@ FILE *entFileOpen() {
     FILE *ent;
     
     /* Determine extern file name */
-    entFileName = malloc(sizeof(char)*((strlen(fileName))+EXT_SUFFIX_LEN));
-    if (!entFileName)
-        exitMemory();   /* memory allocation failed */
-    entFileName = strcpy(entFileName, fileName);    /* Copy file name */
-    entFileName = strcat(entFileName, ".ent");       /* Add suffix to name */
+    entFileName = strdcat(fileName, entryFileExtension);
     
     /* Open object file */
     ent = fopen(entFileName, "w+");
@@ -454,5 +445,6 @@ FILE *entFileOpen() {
         exit(EXIT_FAILURE);
     }
     
+    free(entFileName);
     return ent;
 }

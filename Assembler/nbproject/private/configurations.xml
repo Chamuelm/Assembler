@@ -4,23 +4,26 @@
     <df root="." name="0">
       <df name=".settings">
       </df>
-      <in>assembler.h</in>
+      <df name="headers">
+        <in>assembler.h</in>
+        <in>errors.h</in>
+        <in>firstPass.h</in>
+        <in>line.h</in>
+        <in>main.h</in>
+        <in>output.h</in>
+        <in>secondPass.h</in>
+        <in>symbol.h</in>
+        <in>utils.h</in>
+      </df>
       <in>constants.c</in>
-      <in>errors.h</in>
       <in>firstPass.c</in>
-      <in>firstPass.h</in>
       <in>line.c</in>
-      <in>line.h</in>
       <in>main.c</in>
-      <in>main.h</in>
       <in>old.c</in>
       <in>output.c</in>
       <in>secondPass.c</in>
-      <in>secondPass.h</in>
       <in>symbol.c</in>
-      <in>symbol.h</in>
       <in>utils.c</in>
-      <in>utils.h</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>

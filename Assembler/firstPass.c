@@ -6,8 +6,7 @@
  * Contains functions related to first pass of the assembler on input file
  * 
  */
-#include "assembler.h"
-#include "line.h"
+#include "./include/assembler.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

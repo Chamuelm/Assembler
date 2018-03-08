@@ -24,9 +24,6 @@
 #define TRUE	1                   /* Return value is true or valid */
 #define CPU_COMMANDS_NUM 16         /* Number of CPU command available */
 #define MEMORY_START_ADDRESS 100    /* First address in memory to use */
-#define OB_SUFFIX_LEN 3             /* Length of suffix for object file include '.' */
-#define ENT_SUFFIX_LEN 4            /* Length of suffix for entry file include '.' */
-#define EXT_SUFFIX_LEN 4            /* Length of suffix for externals file include '.' */
 #define BASE_32_LEN 2               /* Length of 10-bit number in Strange 32 Base */
 #define BITS_MASK_10BITS 1023       /* Mask to ignore higher bits than first 10 */
 #define BITS_MASK_5BITS 31          /* Mask to ignore higher bits than first 5 */
@@ -57,6 +54,12 @@ extern const char const *errorsTab[];           /* Errors constants table */
 extern const operatorNode CPUCommands[];        /* Commands constants table */
 extern const char const *keywordTab[];          /* Keywords table */
 extern const char const base32Digit[];          /* Strange Base-32 digits */
+
+/* Files extensions */
+extern const char *sourceFileExtension;
+extern const char *objectFileExtension;
+extern const char *externFileExtension;
+extern const char *entryFileExtension;
 #endif
 
 /*************************** Headers Inclutions ******************************/
