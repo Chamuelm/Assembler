@@ -103,6 +103,7 @@ extern char *fileName; 				/* Name of active file */
 #ifndef CONSTANTS_C 
 extern const char *errorsTab[];                             /* Errors constants table */
 extern const struct operatorNode_s *CPUCommands;        /* Commands constants table */
+extern const char *CMDNames[];
 extern const char *keywordTab[];                         /* Keywords table */
 extern const char base32Digit[];                           /* Strange Base-32 digits */
 

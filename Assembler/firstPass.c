@@ -296,8 +296,10 @@ void procString(line *l) {
                 addData('\0');
                 break;
             }
-            else
+            else {
                 addData(c);
+                l->i++;
+            }
         }
         
         if (c == '\n') {	/* Error if not received closing quotation mark */

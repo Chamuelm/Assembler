@@ -28,7 +28,7 @@
 /*instruction *instArr = (instruction *)malloc(sizeof(instruction)*MAX_INSTRUCTIONS); */
 instruction instArr[MAX_INSTRUCTIONS];  /* Instructions array */ 
 int instIndex;                          /* Instructions array index */
-int dataArr[MAX_INSTRUCTIONS];          /* Data Array */
+int *dataArr;          /* Data Array */
 int IC;                                 /* Instructions counter */
 int DC;                                 /* Data Counter */
 int errorsDetected;                     /* Errors flag */
@@ -78,6 +78,10 @@ void assembler() {
     externExist = 0;    /* Extern existance flag initialization */
     errorsDetected = 0; /* Errors flag initialization */
     symTableInit();     /* Symbol table initialization */
+    
+    dataArr = (int *)malloc(sizeof(int)*MAX_INSTRUCTIONS);
+    if (!dataArr)
+        exitMemory();
     
     /* Main functions calls */
     firstPass();

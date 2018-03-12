@@ -10,7 +10,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./include/assembler.h"
+#include "include/assembler.h"
+
+extern const struct operatorNode_s *CPUCommands;
 
 /* checkSymbol:	Check label for possible errors:
  *  - Length higher than MAX_LABEL_LEN
@@ -35,7 +37,7 @@ error checkSymbol(char *symbol) {
         return ERR_LABEL_LETTER;        /* starts with non-alpha char */
     else {
         for (i=1; i < length; i++)  {	/* Check if contains invalid chars */
-            if (isalnum(symbol[i]) != 0)
+            if (!isalnum(symbol[i]))
                 return ERR_PARAM_CHAR;
         }
     }
@@ -54,7 +56,7 @@ operatorNode *getCommand(char *comm) {
     operatorNode *c = NULL;
     
     for (idx = 0; idx < CPU_COMMANDS_NUM; idx++)
-        if (strcmp(CPUCommands[idx].name, comm) == 0)
+        if (my_strcmp(CMDNames[idx], comm) == TRUE)
             c = (operatorNode *)&CPUCommands[idx];
     
     return c;
@@ -240,4 +242,30 @@ error checkEntry(char *s) {
     }
     else 
         return ERR_VAR_NOT_EXIST;
+}
+
+/*  my_strcmp:  Returns TRUE if str1 and str2 are same */
+int my_strcmp(const char * str1, const char *str2) {
+    int n1, n2;
+    int i1, i2;
+    
+    n1 = my_strlen(str1);
+    n2 = my_strlen(str2);
+    
+    for (i1=i2=0; i1<n1 && i2<n2; i1++, i2++) {
+        if (str1[i1] != str2[i2])
+            return FALSE;
+    }
+    
+    if (i1<n1 || i2<n2)
+        return FALSE;
+    
+    return TRUE;
+}
+
+int my_strlen(const char *str) {
+    int c = 0;
+    while (str[c] != '\0')
+        c++;
+    return c;
 }

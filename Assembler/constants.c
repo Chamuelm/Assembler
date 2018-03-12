@@ -73,6 +73,25 @@ const operatorNode CPUCommands[] = {
     {"stop",	15,		0,          NONE,           NONE}
 };
 
+const char *CMDNames[] = {
+    "mov",
+    "cmp",
+    "add",
+    "sub",
+    "not",
+    "clr",
+    "lea",
+    "inc",
+    "dec",
+    "jmp",
+    "bne",
+    "red",
+    "prn",
+    "jsr",
+    "rts",
+    "stop"
+};
+
 /*
  * Constant array contain assembly keywords.
  * Not contains command names and register names

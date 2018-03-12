@@ -23,6 +23,8 @@ error checkStructName(char *s);
 error checkEntry(char *s);
 char *strdcat(char *dest, const char *addition);
 char *strdup(char *s);
+int my_strcmp(const char * str1, const char *str2);
+int my_strlen(const char *str);
 
 #endif /* UTILS_H */
 
