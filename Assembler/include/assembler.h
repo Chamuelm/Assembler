@@ -11,6 +11,7 @@
 
 #ifndef ASSEMBLER_H
 #define ASSEMBLER_H
+
 /************************* Constants definitions ****************************/
 #define MAX_LINE_LEN 81             /* Maximum length of line in code includes '\n' */
 #define MAX_INSTRUCTIONS 1000       /* Maximum number of instructions in one file */
@@ -33,46 +34,8 @@
 #define CODE_DEST_OP_LOC 2          /* Start bit of destination addressing type location in coded instruction */
 #define CODE_DATA_LOC 2             /* Start bit of data location in additional words */
 
-
-/******************** Main structure global variables ***********************/
-#ifndef MAIN_C
-instruction instArr[MAX_INSTRUCTIONS]; 		/* Instructions array */
-extern int instIndex;				/* Instructions array index */
-extern int dataArr[MAX_INSTRUCTIONS]; 		/* Data Array */
-extern int IC; 					/* Instructions counter */
-extern int DC; 					/* Data Counter */
-extern int errorsDetected; 			/* Errors flag */
-extern int entryExist;                          /* Entry existance flag */
-extern int externExist;                         /* Extern existance flag */
-extern FILE *fp; 				/* Active file pointer */
-extern char *fileName; 				/* Name of active file */
-#endif
-
-/***************** Constants in constants.c declerations ********************/
-#ifndef CONSTANTS_C 
-extern const char const *errorsTab[];           /* Errors constants table */
-extern const operatorNode CPUCommands[];        /* Commands constants table */
-extern const char const *keywordTab[];          /* Keywords table */
-extern const char const base32Digit[];          /* Strange Base-32 digits */
-
-/* Files extensions */
-extern const char *sourceFileExtension;
-extern const char *objectFileExtension;
-extern const char *externFileExtension;
-extern const char *entryFileExtension;
-#endif
-
-/*************************** Headers Inclutions ******************************/
-#include "main.h"
-#include "firstPass.h"
-#include "secondPass.h"
-#include "symbol.h"
-#include "errors.h"
-#include "utils.h"
-
-
-
 /*************************** enums declerations ******************************/
+
 /*
  * List of addressing types used to indicate the addressing type of
  * the current instruction.
@@ -84,10 +47,10 @@ extern const char *entryFileExtension;
  * 16		EMPTY
  *
  */
-enum addressingType {
+typedef enum addressingType {
 	IMMEDIATE = 1, DIRECT = 2, STRUCT_ADD = 4,
         REGISTER = 8, EMPTY = 16
-};
+} addrType;
 
 /* Allowed addressing types to use in commands struct */ 
 enum allowedAddTypes {
@@ -110,38 +73,45 @@ enum lineTypes {
 */ 
 enum codingType {ABSOLUTE, EXTERNAL, RELOCATABLE};
 
-/************************** Structs declerations *****************************/
+/*************************** Headers Inclution ******************************/
+#include "instruction.h"
+#include "symbol.h"
+#include "main.h"
+#include "errors.h"
+#include "firstPass.h"
+#include "line.h"
+#include "output.h"
+#include "secondPass.h"
+#include "utils.h"
+#include <stdio.h>
 
-
-/* Contains instructions operand data */
-typedef struct {
-	char *data;
-	enum addressingType type;
-} operand;
-
-/* CPU command struct */
-typedef struct {
-	char *name;                         /* Command name */
-	unsigned int opcode : 4;            /* Opcode */
-	unsigned int operatorsNum : 2;      /* Number of operators */
-	unsigned int allowedSrc : 5;        /* Allowed source addresing type */
-	unsigned int allowedDest : 5;       /* Allowed destination addresing type */
-} operatorNode;
-
-/* Holds instruction information for instructions table */
-typedef struct {
-	operatorNode *cmd;                  /* Command pointer */
-	operand *op1, *op2;                 /* Operands of this instruction */
-	int lineNum;                        /* Line number in source file */
-        int memAddress;                     /* Address in memory */
-} instruction;
-
-/* Holds line information to pass between functions */
-typedef struct {
-	char data[MAX_LINE_LEN];            /* Contains actual line */
-	int lineNum;                        /* Line number in file */
-	int i;                              /* Line index */
-} line;
-
-
+/******************** Main structure global variables ***********************/
+#ifndef MAIN_C
+extern struct instruction_s *instArr; 		/* Instructions array */
+extern int instIndex;				/* Instructions array index */
+extern int *dataArr; 		/* Data Array */
+extern int IC; 					/* Instructions counter */
+extern int DC; 					/* Data Counter */
+extern int errorsDetected; 			/* Errors flag */
+extern int entryExist;                          /* Entry existance flag */
+extern int externExist;                         /* Extern existance flag */
+extern FILE *fp; 				/* Active file pointer */
+extern char *fileName; 				/* Name of active file */
 #endif
+
+/***************** Constants in constants.c declerations ********************/
+#ifndef CONSTANTS_C 
+extern const char *errorsTab[];                             /* Errors constants table */
+extern const struct operatorNode_s *CPUCommands;        /* Commands constants table */
+extern const char *keywordTab[];                         /* Keywords table */
+extern const char base32Digit[];                           /* Strange Base-32 digits */
+
+/* Files extensions */
+extern const char *sourceFileExtension;
+extern const char *objectFileExtension;
+extern const char *externFileExtension;
+extern const char *entryFileExtension;
+#endif /* end of constants */
+
+
+#endif /* end of ASSEMBLER_H */

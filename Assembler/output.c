@@ -5,9 +5,31 @@
  *      Author: Moshe hamiel
  *      ID:		308238716
  */
-#include "./include/assembler.h"
-#include <stdio.h>
+#include "include/assembler.h"
 #include <string.h> 
+#include <errno.h>
+#include <stdlib.h>
+
+/***************** Internal Functions Declerations ********************/
+void createObjectsFile();
+void intToBase32STR(int num, char *dest);
+void fAddLine(FILE *fileP, char *str1, char *str2);
+void fAddInst(FILE *fileP, instruction *x);
+void fAddInst0op(FILE *fileP, instruction *x);
+void fAddInst1op(FILE *fileP, instruction *x);
+void fAddInst2op(FILE *fileP, instruction *x);
+void fAddCommandWord(FILE *fileP, instruction *x);
+void fAddImmediateWord(FILE *fileP, char *data, int address);
+void fAddRegisterWord(FILE *fileP, char *srcData, char *destData, int address);
+void fAddDirectWord(FILE *fileP, char *data, int address);
+int getAddressingTypeCode(enum addressingType type);
+void createExtEntFiles();
+void fAddExtEnt(symbol *sym, FILE *ext, FILE *ent);
+FILE *extFileOpen();
+FILE *entFileOpen();
+FILE *objFileOpen();
+
+
 
 /* Create output files of active file */
 void createOutputFiles() {
@@ -20,21 +42,11 @@ void createOutputFiles() {
 /* createObjectFile:    create object file of current active assembly file */
 void createObjectsFile() {
     FILE *ob;
-    char *obFileName;
     char base32String1[BASE_32_LEN+1]; /* +1 for '\0' */
     char base32String2[BASE_32_LEN+1];
     int i;
     
-    /* Determine object file name */
-    obFileName = strdcat(fileName, objectFileExtension);
-    
-    /* Open object file */
-    ob = fopen(obFileName, "w+");
-    if (!ob) { /* If fopen fails print error and stop process */
-        fprintf(stderr, "Error: cannot create file %s: %s\n", obFileName, strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    free(obFileName);
+    ob = objFileOpen();
     
     /* Add IC and DC to object file */
     intToBase32STR(IC, base32String1);
@@ -43,7 +55,7 @@ void createObjectsFile() {
     
     /* Add instructions to file */
     for (i=0; i<instIndex; i++) {
-        fAddInst(ob, instArr[i]);
+        fAddInst(ob, &instArr[i]);
     }
     
     /* Add data to file */
@@ -86,7 +98,7 @@ void intToBase32STR(int num, char *dest) {
  */
 void fAddLine(FILE *fileP, char *str1, char *str2) {
     if (fprintf(fileP, "%s\t%s\n", str1, str2) < 0) {
-        fprintf(stderr, "Error while writing to file: ", strerror(errno));
+        fprintf(stderr, "Error while writing to file: %s", strerror(errno));
         exit(EXIT_FAILURE);
     }
 }
@@ -95,10 +107,10 @@ void fAddLine(FILE *fileP, char *str1, char *str2) {
  * fAddInst:    Main function to add coded instruction lines 
  * of instruction x to file fileP 
  */
-void fAddInst(FILE fileP, instruction x) {
+void fAddInst(FILE *fileP, instruction *x) {
     
     
-    switch (x.cmd->operatorsNum) { /* Devide prlocess by number of operators */
+    switch (x->cmd->operatorsNum) { /* Devide prlocess by number of operators */
         case 0:
             fAddInst0op(fileP, x);
             break;
@@ -113,14 +125,14 @@ void fAddInst(FILE fileP, instruction x) {
 
 /* fAddInst0op: Add coded instruction line of commands 
                 with no parameters */
-void fAddInst0op(FILE fileP, instruction x) {
+void fAddInst0op(FILE *fileP, instruction *x) {
     /* Just add command word as there is no additional words */
     fAddCommandWord(fileP, x);
 }
 
 /* fAddInst1op: Add coded instruction line of commands 
                 with one parameters */
-void fAddInst1op(FILE fileP, instruction x) {
+void fAddInst1op(FILE *fileP, instruction *x) {
     int n;
     
     /***** Add first word: command representaion *****/
@@ -148,16 +160,18 @@ void fAddInst1op(FILE fileP, instruction x) {
             fAddDirectWord(fileP, x->op1->data, x->memAddress+1);
             
             (x->op1->data)[n-2] = '.'; /* Retrive struct member data */
-            fAddImmediateWord(fileP, atoi((x->op1->data)+(n-1)), x->memAddress+2);
+            fAddImmediateWord(fileP, ((x->op1->data)+(n-1)), x->memAddress+2);
                 /* +(n-1) to skip to struct member,
                  * addressOffset+2 - this is the 2nd additional word */
+            break;
+        default:
             break;
     }
 }
 
 /* fAddInst2op: Add coded instruction line of commands 
                 with 2 parameters */
-void fAddInst2op(FILE fileP, instruction x) {
+void fAddInst2op(FILE *fileP, instruction *x) {
     int n;
     int wordNum = 1;        /* Address offset from command word memory location */
     
@@ -188,9 +202,11 @@ void fAddInst2op(FILE fileP, instruction x) {
             wordNum++;  /* Increment word number - struct address is 2 additional words */
             
             (x->op1->data)[n-2] = '.'; /* Retrive struct member data */
-            fAddImmediateWord(fileP, atoi((x->op1->data)+(n-1)), x->memAddress+wordNum);
+            fAddImmediateWord(fileP, ((x->op1->data)+(n-1)), x->memAddress+wordNum);
                 /* +(n-1) to skip to struct member,
                  * addressOffset+2 - this is the 2nd additional word */
+            break;
+        default:
             break;
     }
     wordNum++; /* Increment word number for the next operand 
@@ -216,31 +232,33 @@ void fAddInst2op(FILE fileP, instruction x) {
             wordNum++;  /* Increment word number - struct address is 2 additional words */
             
             (x->op2->data)[n-2] = '.'; /* Retrive struct member data */
-            fAddImmediateWord(fileP, atoi((x->op1->data)+(n-1)), x->memAddress+wordNum);
+            fAddImmediateWord(fileP, ((x->op1->data)+(n-1)), x->memAddress+wordNum);
                 /* +(n-1) to skip to struct member,
                  * addressOffset+2 - this is the 2nd additional word */
             break;
+            default:
+                break;
     }
 }
 
 /* 
  * fAddCommandWord: Add command word to fileP
  */
-void fAddCommandWord(FILE fileP, instruction x) {
+void fAddCommandWord(FILE *fileP, instruction *x) {
     int addressCode, wordCode;
     char addressSTR[BASE_32_LEN+1]; /* +1 for '\0' */
     char wordSTR[BASE_32_LEN+1];
     
     /***** Add address information *****/
-    addressCode = x.memAddress;  /* Command code's address is the first in in instruction */
+    addressCode = x->memAddress;  /* Command code's address is the first in in instruction */
     
     /***** Add command information *****/
     
     /* Add opcode representation to instCode*/
-    wordCode = x.cmd->opcode << CODE_OPCODE_LOC;
+    wordCode = x->cmd->opcode << CODE_OPCODE_LOC;
 
     /* Add addressing types representations yo instCode */    
-    switch (x.cmd->operatorsNum)
+    switch (x->cmd->operatorsNum)
     {
         case 0:
             /* No additional words and no need to add information */
@@ -248,12 +266,12 @@ void fAddCommandWord(FILE fileP, instruction x) {
         case 1:
             /* Operand addressing type is destination addressing type so
                add dest addressing type representation to instCode */
-            wordCode |= (getAddressingTypeCode(x.op1->type)<<CODE_DEST_OP_LOC);
+            wordCode |= (getAddressingTypeCode(x->op1->type)<<CODE_DEST_OP_LOC);
             break;
         case 2:
             /* Add addressing types representation yo instCode */
-            wordCode |= (getAddressingTypeCode(x.op1->type)<<CODE_SRC_OP_LOC);
-            wordCode |= (getAddressingTypeCode(x.op2->type)<<CODE_DEST_OP_LOC);
+            wordCode |= (getAddressingTypeCode(x->op1->type)<<CODE_SRC_OP_LOC);
+            wordCode |= (getAddressingTypeCode(x->op2->type)<<CODE_DEST_OP_LOC);
     }
     
     /* No need to update coding type - always ABSOLUTE for commands */
@@ -319,7 +337,6 @@ void fAddDirectWord(FILE *fileP, char *data, int address) {
     char addressSTR[BASE_32_LEN+1]; /* +1 for '\0' */
     char wordSTR[BASE_32_LEN+1];
     int wordCode;                   /* Holds code numeric representation */
-    int codingType;                 /* Word coding type */
     symbol *sym;                    /* Symbol pointer */
     
     sym = symLookup(data);
@@ -394,7 +411,6 @@ void createExtEntFiles() {
  *              ent when occure */
 void fAddExtEnt(symbol *sym, FILE *ext, FILE *ent) {
     char addressSTR[BASE_32_LEN+1]; /* +1 for '\0' */
-    char wordSTR[BASE_32_LEN+1];
     
     if (sym->isEntry) {                             /* Add to ent if entry */
         intToBase32STR(sym->address, addressSTR);
@@ -435,10 +451,10 @@ FILE *entFileOpen() {
     char *entFileName;
     FILE *ent;
     
-    /* Determine extern file name */
+    /* Determine entries file name */
     entFileName = strdcat(fileName, entryFileExtension);
     
-    /* Open object file */
+    /* Open entries file */
     ent = fopen(entFileName, "w+");
     if (!ent) { /* If fopen fails print error and stop process */
         fprintf(stderr, "Error: cannot create file %s: %s\n", entFileName, strerror(errno));
@@ -447,4 +463,24 @@ FILE *entFileOpen() {
     
     free(entFileName);
     return ent;
+}
+
+/* objFileOpen: Opens new file for object output file.
+                Delete if exist */
+FILE *objFileOpen() {
+    char *objFileName;
+    FILE *obj;
+    
+    /* Determine object file name */
+    objFileName = strdcat(fileName, objectFileExtension);
+    
+    /* Open object file */
+    obj = fopen(objFileName, "w+");
+    if (!obj) { /* If fopen fails print error and stop process */
+        fprintf(stderr, "Error: cannot create file %s: %s\n", objFileName, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    
+    free(objFileName);
+    return obj;
 }

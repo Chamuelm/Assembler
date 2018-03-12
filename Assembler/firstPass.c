@@ -6,18 +6,28 @@
  * Contains functions related to first pass of the assembler on input file
  * 
  */
-#include "./include/assembler.h"
-#include <stdio.h>
+#include "include/assembler.h"
 #include <stdlib.h>
 #include <string.h>
 
+/***************** Internal Functions Declerations ********************/
+void procCommand(line *l, char *word);
+void addData(int val);
+void procData(line *l);
+void procString(line *l);
+void procStruct(line *l);
+void procExtern(line *l);
+char *removeColon(char *symbolName);
+
+
+/********************** Functions Definitions *************************/
 
 /* firstPass: process first pass on current active file */
 void firstPass() {
     int lineC;                      /* Line counter */
-    enum errorsShort err;           /* Stores error codes */
+    error err;           /* Stores error codes */
     enum lineTypes lType;           /* Stores line type */
-    char *word;                     /* Temporary word pointer */
+    char *word, *temp;                     /* Temporary word pointer */
     line *currLine;                 /* Temporary line pointer */	
     int isValidSymbol;              /* Symbol flag */
     symbol *sym;                    /* Symbol pointer */
@@ -29,24 +39,36 @@ void firstPass() {
     /* Processing each line */
     for (;;) {
         lineC++;
-        currLine = lineInit(currLine, lineC);
-        if (!fgets(currLine->data, MAX_LINE_LEN, fp))
+        currLine = lineInit(lineC);
+        if (!fgets(currLine->data, MAX_LINE_LEN, fp)){ 
+            free(currLine);
             break;  /* Exit from loop if no more lines */
+        }
+        
         
         /******************** Symbol check processing ********************/
         word = getWord(currLine);
-        if (!word) /* Empty line */
+        if (!word) { /* Empty line */
+            free(currLine);
             continue;	/* Skip to next line */
+        }
         
         /* Check if line is comment */
-        if (word[0] == ';')
+        if (word[0] == ';') {
+            free(word);
+            free(currLine);
             continue;
+        }
         
         /* if it is a symbol declaration check symbol
          * validity and get next word in line
          */
         if (isSymbol(word)) {
-            removeColon(word);
+            /* Remove colon sign and release unused memory */
+            temp = word;
+            word = removeColon(temp);
+            free(temp);
+            
             if ((err = checkSymbol(word)) == NON_ERROR) {
                 isValidSymbol = 1;
                 sym = addSymbol(word, EXTERNAL_ADDRESS, UNKNOWN);
@@ -59,6 +81,7 @@ void firstPass() {
             word = getWord(currLine);   /* Receive next word in line to process*/
             if(!word) {	/* No more words in line = label in empty line */
                 lwarning(ERR_LABEL_EMPTY_LINE, lineC);
+                free(currLine);
                 continue;		/* Continue to next line */
             }
         }
@@ -69,6 +92,7 @@ void firstPass() {
         if(lType == UNKNOWN) {		/* If unknown command, continue to next line */
             lerror(ERR_UNKNOWN_CMD, lineC);
             free(word);             /* Memory release */
+            free(currLine);
             continue;
         }
         
@@ -95,6 +119,8 @@ void firstPass() {
                     lerror(ERR_LABEL_EXTERN, lineC);
                     removeSymbol(sym);
                     break;
+                default:
+                    break;
             }
         }
         
@@ -117,14 +143,15 @@ void firstPass() {
             case EXTERN:
                 procExtern(currLine);
                 break;
+            default:
+                break;
         }
         free(word); /* Memory release */
+        free(currLine);
     }
     
     /* Update symbols address by IC to all external symbols address */
     symbolsAddressAdd(DC);
-    
-    free(currLine);
 }
 
 
@@ -213,7 +240,7 @@ void procCommand(line *l, char *word) {
  * addData:	add given number and put in data array
  * Given number is already in 2's complement so no need to convert.
  * */
-int addData(int val) {
+void addData(int val) {
     if (DC < MAX_INSTRUCTIONS) { /* Check for space in data array */
         if (val > 0)	/* Turn sign bit off */
             dataArr[DC++] = val&(~SIGN_BIT_MASK);
@@ -225,33 +252,19 @@ int addData(int val) {
     }
 }
 
-/* addinstruction: Add instruction node to instructions array
- * and calculate number of actual assembly instructions and adds to
- * instructions counter IC
- */
-void addInstruction(operatorNode c, operand operand1, operand operand2, int lineNumber) {
-    instArr[instIndex].cmd = c;
-    instArr[instIndex].op1 = operand1;
-    instArr[instIndex].op2 = operand2;
-    instArr[instIndex].lineNum = lineNumber;
-    instArr[instIndex].memAddress = MEMORY_START_ADDRESS+IC;
-    
-    IC += calcInstructions(instArr[instIndex]);	/* Instructions counter increment */
-    instIndex++;					/* Instructions array index increment */
-}
 
 
 /* procData:	Stores data in data table (number), 
  * increment DC, and check for errors */ 
 void procData(line *l) {
     char *p;			/* Temp string pointer */
-    enum errorsShort err;           /* error type holder */
+    error err;           /* error type holder */
     
     skipWhite(l);
     
     /* Check for comma before data */
     if (l->data[l->i] == ',') {
-        lerror("Invalid comma before data", l->lineNum);
+        lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
         l->i++;
     }
     
@@ -275,11 +288,11 @@ void procString(line *l) {
     skipWhite(l);
     
     c = l->data[l->i++];
-    if(c == "\"") {	/* Start of string */
+    if(c == '\"') {	/* Start of string */
         /* Add chars to data table until end of string */
         c = l->data[l->i++];
         while (c != '\n') {
-            if (c == "\"") {	/* = end of string */
+            if (c == '\"') {	/* = end of string */
                 addData('\0');
                 break;
             }
@@ -301,6 +314,7 @@ void procString(line *l) {
 /* procStruct:	Stores struct in data table, increment DC, and check for errors */
 void procStruct(line *l) {
     char *temp;
+    error err;
     
     if (checkComma(l)) {		/* Received comma before parameter */
         lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
@@ -313,10 +327,12 @@ void procStruct(line *l) {
         return;
     }
     
-    if (isValidNum(temp, l->lineNum)) {
+    if ((err=isValidNum(temp))==NON_ERROR) {
         addData(atoi(temp));	/* Add struct's number to data array */
         free(temp);
     }
+    else
+        lerror(err, l->lineNum); /* Prints error if temp is not valid number */
     
     /* Look for comma between parameters */
     if (checkComma(l))
@@ -331,13 +347,13 @@ void procStruct(line *l) {
 /* procExtern:	Stores externs in data table and check for errors */
 void procExtern(line *l) {
     char *str;
-    enum errorsShort err;
+    error err;
     
     if (checkComma(l)) {
         lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
         l->i++;
     }
-    while (str = getParameter(l)) {
+    while ((str = getParameter(l))) {
         err = checkSymbol(str);
         if (err == NON_ERROR)
             addSymbol(str, EXTERNAL_ADDRESS, EXTERN);
@@ -346,4 +362,21 @@ void procExtern(line *l) {
         
         free(str);
     }
+}
+
+/* removeColon:	Return new string of label without ending colon sign */
+char *removeColon(char *symbolName) {
+    int n;
+    char *new;
+    
+    n = strlen(symbolName);
+    new = (char *)malloc(sizeof(char)*n);
+    if (!new) { /* Allocation check */
+        exitMemory();
+    } else {
+        new = strncpy(new, symbolName, n-1);
+        new[n-1] = '\0';
+    }
+    
+    return new;
 }

@@ -4,10 +4,11 @@
     <df root="." name="0">
       <df name=".settings">
       </df>
-      <df name="headers">
+      <df name="include">
         <in>assembler.h</in>
         <in>errors.h</in>
         <in>firstPass.h</in>
+        <in>instruction.h</in>
         <in>line.h</in>
         <in>main.h</in>
         <in>output.h</in>
@@ -15,14 +16,17 @@
         <in>symbol.h</in>
         <in>utils.h</in>
       </df>
+      <df name="obj">
+      </df>
       <in>constants.c</in>
       <in>firstPass.c</in>
+      <in>instruction.c</in>
       <in>line.c</in>
       <in>main.c</in>
-      <in>old.c</in>
       <in>output.c</in>
       <in>secondPass.c</in>
       <in>symbol.c</in>
+      <in>test.as</in>
       <in>utils.c</in>
     </df>
   </logicalFolder>
@@ -31,7 +35,7 @@
     <conf name="Default" type="0">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
-        <platform>3</platform>
+        <platform>2</platform>
       </toolsSet>
       <compile>
         <compiledirpicklist>
@@ -53,6 +57,7 @@
         </gdb_interceptlist>
         <gdb_options>
           <DebugOptions>
+            <option name="debug_dir" value="/home/moshe/Netbeans/assembler/Assembler/."/>
           </DebugOptions>
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
@@ -63,9 +68,17 @@
       <runprofile version="9">
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" </runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" ./test</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" test.as</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" ~/Assembler/test</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" ~/Assembler/test.as</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" test</runcommandpicklistitem>
+          <runcommandpicklistitem>../assembler test</runcommandpicklistitem>
+          <runcommandpicklistitem>./assembler test</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}"</runcommand>
-        <rundir>.</rundir>
+        <runcommand>./assembler test</runcommand>
+        <rundir>/home/moshe/Netbeans/assembler/Assembler/.</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>
         <remove-instrumentation>0</remove-instrumentation>

@@ -6,9 +6,25 @@
  * Contains function declerations of symbol.c
  * 
  */
+#ifndef ASSEMBLER_H
+#include "assembler.h"
+#endif
 
 #ifndef SYMBOL_H
 #define SYMBOL_H
+
+/************************* Constants definition ****************************/
+#define HASHSIZE 101
+
+/************************** Struct definition *****************************/
+typedef struct symbol_s symbol;
+struct symbol_s {
+    char name[MAX_LABEL_LEN];	/* Symbol name */
+    int address;			/* Address in memory */
+    enum lineTypes type;            /* Symbol type (COMMAND/DATA/EXTERN) */
+    unsigned int isEntry : 1;       /* flag if is entry */
+    symbol *next;                   /* Next symbol in chain */
+};
 
 /******************** Extern symbol table decleration ***********************/
 #ifndef SYMBOL_C
@@ -16,26 +32,12 @@
 extern symbol *symTable[HASHSIZE];
 #endif
 
-/************************* Constants definition ****************************/
-#define HASHSIZE 101
+/********************* External Functions Declerations ************************/
 
-/*********************** Struct definition **************************/
-typedef struct {
-	char name[MAX_LABEL_LEN];	/* Symbol name */
-	int address;			/* Address in memory */
-	enum lineTypes type;            /* Symbol type (COMMAND/DATA/EXTERN) */
-        unsigned int isEntry : 1;       /* flag if is entry */
-	symbol *next;                   /* Next symbol in chain */
-} symbol;
-
-/********************* 	Functions Declerations 	************************/
-unsigned int hash(char *s);
 symbol *symLookup(char *s);
 symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType);
-char *strdup(char *s);
 void symTableInit();
-void freeSymbol(symbol *s);
 void symbolsAddressAdd(int x);
-void addressUpdate(symbol *s, int x);
+void removeSymbol(symbol *toRemove);
 
 #endif

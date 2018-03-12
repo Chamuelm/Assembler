@@ -3,21 +3,18 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains function declerations of firstPass.c
+ * Contains external function declerations of firstPass.c
  * 
  */
 
 #ifndef FIRSTPASS_H
 #define FIRSTPASS_H
 
+#include "line.h"
+
 void firstPass();
-void procCommand(line *l, char *word);
-int addData(int val);
-void addInstruction(operatorNode c, operand operand1, operand operand2, int lineNumber);
-void procData(line *l);
-void procString(line *l);
-void procStruct(line *l);
-void procExtern(line *l);
+void procEntry2(line *l);
+void checkInstArr();
 
 #endif /* FIRSTPASS_H */
 

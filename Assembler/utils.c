@@ -9,16 +9,8 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include "./include/assembler.h"
-
-
-/* removeColon:	Removes colon from label */
-void removeColon(char *symbolName) {
-    int n;
-    
-    n = strlen(symbolName);
-    symbolName[n-1] = '\0';
-}
 
 /* checkSymbol:	Check label for possible errors:
  *  - Length higher than MAX_LABEL_LEN
@@ -29,7 +21,7 @@ void removeColon(char *symbolName) {
  *
  * 	Returns error code if invalid otherwise returns NON_ERROR
  *  */
-enum errorsShort checkSymbol(char *symbol) {
+error checkSymbol(char *symbol) {
     int length, i = 0;
     
     length = strlen(symbol);
@@ -42,9 +34,9 @@ enum errorsShort checkSymbol(char *symbol) {
     else if (!isalpha(symbol[0]))
         return ERR_LABEL_LETTER;        /* starts with non-alpha char */
     else {
-        for (i=1; i < length; i  {	/* Check if contains invalid chars */
-            if (!isalnum(symbol[i]))
-                return ERR_LABEL_CHAR;
+        for (i=1; i < length; i++)  {	/* Check if contains invalid chars */
+            if (isalnum(symbol[i]) != 0)
+                return ERR_PARAM_CHAR;
         }
     }
     
@@ -52,36 +44,18 @@ enum errorsShort checkSymbol(char *symbol) {
 }
 
 
-/* getLineType: Returns line type:
- * COMMAND/DATA/STRING/STRUCT/ENTRY/EXTERN/UNKNOWN
- */
-enum lineTypes getLineType(char *cmd) {
-    if (getCommand(cmd) != NULL)
-        return COMMAND;
-    else if(strcmp(cmd, ".data") == 0)
-        return DATA;
-    else if(strcmp(cmd, ".string") == 0)
-        return STRING;
-    else if(strcmp(cmd, ".struct") == 0)
-        return STRUCT;
-    else if(strcmp(cmd, ".entry") == 0)
-        return ENTRY;
-    else if(strcmp(cmd, ".extern") == 0)
-        return EXTERN;
-    else
-        return UNKNOWN;
-}
+
 
 /* getCommand: check if cmd is known CPU commands.
  * Returns pointer to command or NULL if unknown command
  */
-operatorNode *getCommand(char *cmd) { 
+operatorNode *getCommand(char *comm) { 
     int idx;
     operatorNode *c = NULL;
     
     for (idx = 0; idx < CPU_COMMANDS_NUM; idx++)
-        if (strcmp(CPUCommands[idx].name, cmd) == 0)
-            c = &CPUCommands[idx];
+        if (strcmp(CPUCommands[idx].name, comm) == 0)
+            c = (operatorNode *)&CPUCommands[idx];
     
     return c;
 }
@@ -119,6 +93,28 @@ int isKeyword(char *s) {
     return FALSE;
 }
 
+/* Check cmd parameter s if it is struct */
+int isStruct(char *s) {
+    int i = 0;
+    
+    /* Check for dot */
+    while(s[i] != '\0') {
+        if (s[i] == '.')
+            break;
+        i++;
+    }
+    
+    if (s[i] == '\0') /* Not struct */
+        return FALSE;
+    else {	/* s[i] == '.' */
+        if ((s[i+1] != '\0') &&				/* Check if in string limit */
+                (s[i+1] == '1' || s[i+1] == '2') &&	/* Check if call for struct member */
+                (s[i+2] == '\0'))			/* Check if no invalid chars after struct */
+            return TRUE;
+    }
+    return FALSE;
+}
+
 /* isRegister:	check if s is register name */
 int isRegister(char *s) {
     if (strlen(s) != 2)	/* If length is not 2 it is not register name */
@@ -135,7 +131,7 @@ int isRegister(char *s) {
 
 /* isValidNum: Check if string s is valid number
  * Prints to stderr if is not valid */
-enum errorsShort isValidNum(char *s) {
+error isValidNum(char *s) {
     int i = 0;
     
     /* Skip white spaces before number  if exist */
@@ -174,30 +170,10 @@ enum errorsShort isValidNum(char *s) {
         return ERR_PARAM_BIG;
 }
 
-/* Check cmd parameter s if it is struct */
-int isStruct(char *s) {
-    int i = 0;
-    
-    /* Check for dot */
-    while(s[i] != '\0') {
-        if (s[i] == '.')
-            break;
-        i++;
-    }
-    
-    if (s[i] == '\0') /* Not struct */
-        return FALSE;
-    else {	/* s[i] == '.' */
-        if ((s[i+1] != '\0') &&				/* Check if in string limit */
-                (s[i+1] == '1' || s[i+1] == '2') &&	/* Check if call for struct member */
-                (s[i+2] == '\0'))			/* Check if no invalid chars after struct */
-            return TRUE;
-    }
-    return FALSE;
-}
+
 
 /* checkStructName: check if s is valid struct name */
-enum errorsShort checkStructName(char *s) {
+error checkStructName(char *s) {
     int n;
     
     n = strlen(s);	/* Get string length */
@@ -212,56 +188,9 @@ enum errorsShort checkStructName(char *s) {
     else
         return NON_ERROR;
     
-    s[n-2] == '.';  /* Retrive membre access */
+    s[n-2] = '.';  /* Retrive membre access */
 }
 
-
-
-/* calcInstructions:	Calculate number of instructions
- * based on operators left in line
- */
-int calcInstructions(instruction *inst) {
-    enum addressingType op1Type, op2Type;
-    int i = 1;
-    
-    op1Type = inst->op1->type;
-    op2Type = inst->op2->type;
-    
-    /*
-     * Increment i by type of addresing type:
-     *	All but struct required 1 additional word
-     *	Struct required 2 additional words.
-     *	If both are REGISTER they can share the same word
-     */
-    switch(op1Type) {
-	case EMPTY:
-            break;
-	case REGISTER:
-	case IMMEDIATE:
-	case DIRECT:
-            i++;
-            break;
-	case STRUCT_ADD:
-            i += 2;
-    }
-    
-    switch(op2Type) {
-	case EMPTY:
-            break;
-	case REGISTER:
-            if (op1Type != REGISTER)
-                i++;	/* If op1Type is REGISTER it use */
-            break;	/* the same additional word */
-	case IMMEDIATE:
-	case DIRECT:
-            i++;
-            break;
-	case STRUCT_ADD:
-            i += 2;
-    }
-    
-    return i;
-}
 
 /* strdcat:     Concatanate addition to dest and take care for memory allocation. 
  *              Returned value is dynamically allocated and have to be freed later.
@@ -272,7 +201,7 @@ char *strdcat(char *dest, const char *addition) {
     
     /* Determine lengths */
     newStringLen = strlen(dest);        /* Add length of dest */
-    newStringLen += strlen(addition);   /* Add length if addition */
+    newStringLen += strlen(addition);   /* Add length of addition */
     newStringLen += 1;                  /* Add space for '\0' */
     
     /* Memory allocation */
@@ -285,4 +214,30 @@ char *strdcat(char *dest, const char *addition) {
     strcat(newString, addition);
     
     return newString;
+}
+
+/* strdup: Copy string s to returned new allocated space */
+char *strdup(char *s) {
+    char *p;
+    p = (char *) malloc(strlen(s) + 1);
+    if(p != NULL)
+        strcpy(p, s);
+    return p;
+}
+
+/* checkEntry:  check if s is not external var and mark as entry
+ return NON_ERROR if s is valid entry otherwise return error code */
+error checkEntry(char *s) {
+    symbol *sym;
+    if ((sym = symLookup(s))) {
+        /* if symbol found, check if not extern */
+        if (sym->type == EXTERN)
+            return ERR_EXTERN_ENTRY;
+        else {
+            sym->isEntry = TRUE;
+            return  NON_ERROR;
+        }
+    }
+    else 
+        return ERR_VAR_NOT_EXIST;
 }

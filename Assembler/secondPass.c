@@ -6,8 +6,14 @@
  * Contains functions related to second pass of the assembler on input file
  * 
  */
-#include <stdio.h>
-#include "./include/assembler.h"
+#include <stdlib.h>
+#include "include/assembler.h"
+
+/***************** Internal Functions Declerations ********************/
+void procEntry2(line *l);
+void checkInstArr();
+
+/********************** Functions Definitions *************************/
 
 /* secondPass: process first pass on current active file:
  *  1.  For each line: if is entry check if exist and mark
@@ -19,11 +25,9 @@
  */
 void secondPass() {
     int lineC;                      /* Line counter */
-    enum errorsShort err;           /* Stores error codes */
     enum lineTypes lType;           /* Stores line type */
     char *word;                     /* Temporary word pointer */
     line *currLine;                 /* Temporary line pointer */
-    symbol *sym;                    /* Temporary symbol pointer */
     
     /* Line and file initialization */
     fseek(fp, 0, SEEK_SET);         /* Return to start of file */
@@ -34,7 +38,7 @@ void secondPass() {
     for (;;)
     {   
         lineC++;
-        currLine = lineInit(currLine, lineC);
+        currLine = lineInit(lineC);
         if (!fgets(currLine->data, MAX_LINE_LEN, fp))
             break;  /* Exit from loop if no more lines */
         
@@ -50,8 +54,10 @@ void secondPass() {
         {         
             free(word);                 /* Release dynamically allocated memory */
             word = getWord(currLine);   /* Receive next word in line to process*/
-            if(!word)	/* Skip line if no more words in line */
+            if(!word) {	/* Skip line if no more words in line */
+                free(currLine);
                 continue;		/* Continue to next line */
+            }
         }
         
         /******************** Actual line processing ********************/
@@ -84,8 +90,7 @@ void secondPass() {
 
 void procEntry2(line *l) {
     char *s;                /* Temporary string */
-    symbol *sym;            /* Temporary symbol pointer */
-    enum errorsShort err;   /* Temporary error code */
+    error err;   /* Temporary error code */
     
     if (checkComma(l)) {  /* Check for comma before parameters */
             lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
@@ -106,7 +111,7 @@ void procEntry2(line *l) {
     for(;;) { /* Get more entry parameters */
         if (checkComma(l)) {
             l->i++;
-            if (s = getParameter(l)) {  /* Received parameter seperated with comma */
+            if ((s = getParameter(l))) {  /* Received parameter seperated with comma */
                 if ((err = checkEntry(s)) != NON_ERROR) /* Mark as entry if valid */
                     lerror(err, l->lineNum);            /* otherwise print error code */
                 free(s);
@@ -114,7 +119,7 @@ void procEntry2(line *l) {
                 lerror(ERR_MISS_PARAM, l->lineNum);
                 break;
             }
-        } else if (s = getParameter(l)) {   /* Recieved parameter without seperating comma */
+        } else if ((s = getParameter(l))) {   /* Recieved parameter without seperating comma */
             lerror(ERR_COMMA_EXPECTED, l->lineNum);
             if ((err = checkEntry(s)) != NON_ERROR) /* Mark as entry if valid */
                 lerror(err, l->lineNum);            /* otherwise print error code */
@@ -131,22 +136,10 @@ void checkInstArr() {
     int i;
     
     for(i=0; i<instIndex; i++){
-        if (!checkOperandName(instArr[i]->op1))
-            lerror(ERR_VAR_NOT_EXIST, instArr[i]->lineNum);
-        if (!checkOperandName(instArr[i]->op2))
-            lerror(ERR_VAR_NOT_EXIST, instArr[i]->lineNum);
+        if (!checkOperandName(instArr[i].op1))
+            lerror(ERR_VAR_NOT_EXIST, instArr[i].lineNum);
+        if (!checkOperandName(instArr[i].op2))
+            lerror(ERR_VAR_NOT_EXIST, instArr[i].lineNum);
     }
 }
 
-/* checkOperandname: returns TRUE if op name is existing variable */
-int checkOperandName(operand *op) {
-    
-    if (!op)    /* No operator */
-        return TRUE;
-    
-    /* Check if operand name is existing variable */
-    if (symLookup(op->data))
-        return TRUE;
-    else
-        return FALSE;
-}

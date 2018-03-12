@@ -5,19 +5,18 @@
  *      Author: Moshe hamiel
  *      ID:		308238716
  */
-#include "./include/assembler.h"
-#include <stdio.h>
+#include "include/assembler.h"
+#include <stdlib.h>
+#include <string.h>
 
+
+/********************** Functions Definitions *************************/
 
 /* lineInit: Initialize line structure
  * free oldLine if is allocated and returns dynamically
  * allocated pointer */
-line *lineInit(line *oldLine, int lineNumber) {
+line *lineInit(int lineNumber) {
     line *lp;
-    
-    /* Release old line if exist */
-    if (oldLine != NULL)
-        free(oldLine);
     
     /* New line allocation */
     lp = (line *)malloc(sizeof(line));
@@ -29,7 +28,6 @@ line *lineInit(line *oldLine, int lineNumber) {
     
     return lp;
 }
-
 
 /* getWord: returns dynamically allocated string
  * with the next word in line separated by spaces or tabs */
@@ -43,7 +41,7 @@ char *getWord(line *l) {
     count = 0;			/* Counter for allocation size */
     
     while(s[idx] != '\n') {
-        if(s[idx] == ' ' || s[idx] == '\0')	/* Stops if reached white space */
+        if(s[idx] == ' ' || s[idx] == '\0' || s[idx] == '\t')	/* Stops if reached white space */
             break;
         else {				/* Count string length */ 
             idx++;
@@ -56,7 +54,7 @@ char *getWord(line *l) {
     else {
         newS = (char *)malloc(sizeof(char)*(count+1)); /* +1 for '\0' */
         if (!newS)
-            exitMemory();
+            exitMemory(); /* Memory allocation failed */
         else {
             strncpy(newS, s+(l->i), count);
             newS[count] = '\0';
@@ -92,27 +90,9 @@ char *getParameter(line *l) {
     return NULL;
 }
 
-/* checkEntry:  check if s is not external var and mark as entry
- return NON_ERROR if s is valid entry otherwise return error code */
-enum errorsShort checkEntry(char *s) {
-    symbol *sym;
-    if ((sym = symLookup(s))) {
-        /* if symbol found, check if not extern */
-        if (sym->type == EXTERN)
-            return ERR_EXTERN_ENTRY;
-        else {
-            sym->isEntry = TRUE;
-            return  NON_ERROR;
-        }
-    }
-    else 
-        return ERR_VAR_NOT_EXIST;
-}
-
-
 /*  getOperand:	Returns pointer to dynamically allocated operand from line l */
 operand *getOperand(line *l) {
-    enum errorsShort err;
+    error err;
     char *s, *temp;
     operand *op;
     int invalid = 0;		/* Operand validity flag */
@@ -183,10 +163,8 @@ operand *getOperand(line *l) {
         op->data = s;
     }
     
-    
     return op;
 }
-
 
 /* skipWhite: Skips white spaces and tabs in line */
 void skipWhite(line *l) {
@@ -198,17 +176,6 @@ void skipWhite(line *l) {
         else
             break;
 }
-
-/* checkEmpty: Check if line is empty and proceed to first non-blank char
- * returns 1 if empty line otherwise returns 0 */
-int checkEmpty(line *l) {
-    skipWhite(l);
-    if (l->data[l->i] == '\n')
-        return 1;
-    else
-        return 0;
-}
-
 
 /* isEOL:		Check for end of line */
 int isEOL(line *l) {
@@ -227,3 +194,24 @@ int checkComma(line *l) {
     else
         return FALSE;
 }
+
+/* getLineType: Returns line type:
+ * COMMAND/DATA/STRING/STRUCT/ENTRY/EXTERN/UNKNOWN
+ */
+enum lineTypes getLineType(char *cmd) {
+    if (getCommand(cmd) != NULL)
+        return COMMAND;
+    else if(strcmp(cmd, ".data") == 0)
+        return DATA;
+    else if(strcmp(cmd, ".string") == 0)
+        return STRING;
+    else if(strcmp(cmd, ".struct") == 0)
+        return STRUCT;
+    else if(strcmp(cmd, ".entry") == 0)
+        return ENTRY;
+    else if(strcmp(cmd, ".extern") == 0)
+        return EXTERN;
+    else
+        return UNKNOWN;
+}
+

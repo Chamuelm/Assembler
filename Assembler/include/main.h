@@ -10,12 +10,11 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-int main(int argc, char *argv[]);
-void assembler(char *fileName, FILE *fp);
-void lerror(char *s, int lineNum);
-void lwarning(char *s, int lineNum);
+#include "errors.h"
+
+void lerror(error err, int lineNum);
+void lwarning(error err, int lineNum);
 void exitMemory();
-void freeInstArr();
-void freeOperand(operand *op);
+
 
 #endif

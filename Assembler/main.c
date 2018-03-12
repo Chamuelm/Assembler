@@ -14,12 +14,19 @@
  *  3. If no errors - output files creation
  * 
  */
-#include <stdio.h>
-#include <stdlib.h>
-#define MAIN_C
-#include "./include/assembler.h"
 
-instruction instArr[MAX_INSTRUCTIONS];  /* Instructions array */
+#define MAIN_C  /* Include protector for extern decleration in assembler.h */
+
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include "include/assembler.h"
+
+
+
+/************************ Global Variables ***************************/
+/*instruction *instArr = (instruction *)malloc(sizeof(instruction)*MAX_INSTRUCTIONS); */
+instruction instArr[MAX_INSTRUCTIONS];  /* Instructions array */ 
 int instIndex;                          /* Instructions array index */
 int dataArr[MAX_INSTRUCTIONS];          /* Data Array */
 int IC;                                 /* Instructions counter */
@@ -29,6 +36,12 @@ int entryExist;                         /* Entry existance flag */
 int externExist;                        /* Extern existance flag */
 FILE *fp;                               /* Active file pointer */ 
 char *fileName;                         /* Name of active file */
+
+/***************** Internal Functions Declerations ********************/
+int main(int argc, char *argv[]);
+void assembler();
+
+/********************** Functions Definitions *************************/
 
 int main(int argc, char *argv[]) {
     char *fullFileName;
@@ -40,7 +53,7 @@ int main(int argc, char *argv[]) {
     }
     
     while (--argc > 0) { /* Proccesing for each input file */
-        fileName = ++argv;
+        fileName = *++argv;
         /* Cat file extension */
         fullFileName = strdcat(fileName, sourceFileExtension);
         
@@ -57,7 +70,7 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-void assembler(char *fileName, FILE *fp) {
+void assembler() {
     /* Varaiables initialization */
     IC = DC = 0;	/* Counter initialization */
     instIndex = 0;      /* instructions' array index initialize */
@@ -85,14 +98,14 @@ void assembler(char *fileName, FILE *fp) {
 
 
 /* lerror:	Print error message to stderr and increase error counter */
-void lerror(char *s, int lineNum) {
-    fprintf(stderr, "Error, line %d: %s.\n", lineNum, s);
+void lerror(error err, int lineNum) {
+    fprintf(stderr, "Error, line %d: %s.\n", lineNum, errorsTab[err]);
     errorsDetected++;
 }
 
 /* lwarning:    Print warning message to stderr */
-void lwarning(char *s, int lineNum) {
-    fprintf(stderr, "Warning, line %d: %s.\n", lineNum, s);
+void lwarning(error err, int lineNum) {
+    fprintf(stderr, "Warning, line %d: %s.\n", lineNum, errorsTab[err]);
 }
 
 
@@ -102,20 +115,3 @@ void exitMemory() {
     exit(EXIT_FAILURE);
 }
 
-/* freeOperand: Release dynamically allocated operands of instructions in instArr */
-void freeInstArr() {
-    int i;
-    
-    for(i=0; i< instIndex; i++) {
-        if (instArr[i].op1)
-            freeOperand(instArr[i].op1);
-        if (instArr[i].op2)
-            freeOperand(instArr[i].op2);
-    }
-}
-
-/* freeOperand: Release dynamically allocated operand */
-void freeOperand(operand *op){
-    free(op->data);
-    free(op);
-}

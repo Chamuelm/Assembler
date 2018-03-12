@@ -11,9 +11,16 @@
 #define SYMBOL_C
 #include "./include/assembler.h"
 #include <stdlib.h>
-#include <stdio.h>
+#include <string.h>
+
+unsigned int hash(char *s);
+void freeSymbol(symbol *s);
+void addressUpdate(symbol *s, int x);
 
 symbol *symTable[HASHSIZE];		/* Symbols table */
+
+
+
 
 /* hash:	form hash value for string s */
 unsigned int hash(char *s) {
@@ -41,7 +48,7 @@ symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType ) {
     
     if((np = symLookup(newName)) == NULL) {	/* Check if symbol already exist */
         np = (symbol *) malloc(sizeof(*np));
-        if(np == NULL || (np->name = strdup(newName)) == NULL)	/* Successful alloc? */
+        if(np == NULL)	/* Successful alloc? */
             exitMemory();	/* Exit if memory allocation failed */
         
         /* Put in symbol table by hash */
@@ -50,6 +57,7 @@ symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType ) {
         np->address = newAddress;
         np->type = newType;
         np->isEntry = FALSE;
+        strcpy(np->name, newName);
         symTable[hashval] = np;
         
         /* Address update by first memory address if symbol is not external */
@@ -58,15 +66,6 @@ symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType ) {
     } else	/* Symbol already exist! */
         return NULL;
     return np; /* symboll added fine */
-}
-
-/* strdup: Copy string s to returned new allocated space */
-char *strdup(char *s) {
-    char *p;
-    p = (char *) malloc(strlen(s) + 1);
-    if(p != NULL)
-        strcpy(p, s);
-    return p;
 }
 
 /* removeSymbolPtr: remove sym from symbols table */

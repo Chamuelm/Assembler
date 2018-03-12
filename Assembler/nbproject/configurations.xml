@@ -2,19 +2,11 @@
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
-      <df name="headers">
-        <in>firstPass.h</in>
-        <in>line.h</in>
-        <in>main.h</in>
-        <in>output.h</in>
-        <in>secondPass.h</in>
-        <in>utils.h</in>
-      </df>
       <in>constants.c</in>
       <in>firstPass.c</in>
+      <in>instruction.c</in>
       <in>line.c</in>
       <in>main.c</in>
-      <in>old.c</in>
       <in>output.c</in>
       <in>secondPass.c</in>
       <in>symbol.c</in>
@@ -40,6 +32,9 @@
         <dependencyChecking>false</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-g -ansi"/>
+      </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
       <makefileType>
@@ -47,42 +42,75 @@
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
           <buildCommand>${MAKE} -f Makefile</buildCommand>
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
-          <executablePath></executablePath>
+          <executablePath>/usr/bin/gcc</executablePath>
         </makeTool>
         <preBuild>
           <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
           <preBuildCommand></preBuildCommand>
         </preBuild>
       </makefileType>
-      <item path="constants.c" ex="false" tool="0" flavor2="0">
+      <item path="constants.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
-      <item path="firstPass.c" ex="false" tool="0" flavor2="0">
+      <item path="firstPass.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
-      <item path="headers/firstPass.h" ex="false" tool="3" flavor2="0">
+      <item path="instruction.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
-      <item path="headers/line.h" ex="false" tool="3" flavor2="0">
+      <item path="line.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
-      <item path="headers/main.h" ex="false" tool="3" flavor2="0">
+      <item path="main.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
-      <item path="headers/output.h" ex="false" tool="3" flavor2="0">
+      <item path="output.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
-      <item path="headers/secondPass.h" ex="false" tool="3" flavor2="0">
+      <item path="secondPass.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
-      <item path="headers/utils.h" ex="false" tool="3" flavor2="0">
+      <item path="symbol.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
-      <item path="line.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="main.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="old.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="output.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="secondPass.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="symbol.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="utils.c" ex="false" tool="0" flavor2="0">
+      <item path="utils.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+          <incDir>
+            <pElem>include/main.h ./include/assembler.h ./include/firstPass.h ./include/secondPass.h ./include/instruction.h ./include/utils.h ./include/errors.h ./include/line.h ./include/output.h ./include/symbol.h</pElem>
+          </incDir>
+        </cTool>
       </item>
     </conf>
   </confs>

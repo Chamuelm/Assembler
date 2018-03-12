@@ -10,15 +10,25 @@
 #ifndef LINE_H
 #define LINE_H
 
-line *lineInit(line *oldLine, int lineNumber);
+#include "assembler.h"
+
+/************************** Struct definition *****************************/
+
+/* Holds line information to pass between functions */
+typedef struct {
+	char data[MAX_LINE_LEN];    /* Contains actual line */
+	int lineNum;                          /* Line number in file */
+	int i;                                     /* Line index */
+} line;
+
+line *lineInit(int lineNumber);
 char *getWord(line *l);
 char *getParameter(line *l);
 operand *getOperand(line *l);
 void skipWhite(line *l);
-int checkEmpty(line *l);
 int isEOL(line *l);
 int checkComma(line *l);
-enum errorsShort checkEntry(char *s);
+enum lineTypes getLineType(char *cmd);
 
 #endif /* LINE_H */
 

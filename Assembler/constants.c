@@ -8,13 +8,13 @@
  */
 
 #define CONSTANTS_C
-#include <stdio.h>
+#include "include/assembler.h"
 
 /*
  * Constant array contain error messages to use in lerror and lwarning functions.
  */
-const char const *errorsTab[] = {
-    "Invalid comma before parameter",
+const char *errorsTab[] = {
+    "Invalid comma before parameter", 
     "Expected comma",
     "Extra comma after parameter",
     "Not enough memory. Exiting...",
@@ -53,11 +53,11 @@ const char const *errorsTab[] = {
  * 	SrcAdd		Source addressing types allowed (Described in enum allowedAddTypes in assembler.h)
  * 	DestAdd		Destination addressing types allowed
  *  */
+/*  Name        Opcode  Operators   SrcAdd  DestAdd	  */
 const operatorNode CPUCommands[] = {
-/*  Name  	Opcode          Operators   SrcAdd          DestAdd	  */
-    {"mov",	0,		2,          ALL_ADD,        REG_ADD},
-    {"cmp",	1,		2,          ALL_ADD,        ALL_ADD},
-    {"add",	2,		2,          ALL_ADD,        REG_ADD},
+    {"mov",0,		2,          ALL_ADD,        REG_ADD},
+    {"cmp",     1,		2,          ALL_ADD,        ALL_ADD},
+    {"add",        2,		2,          ALL_ADD,        REG_ADD},
     {"sub",	3,		2,          ALL_ADD,        REG_ADD},
     {"not",	4,		1,          NONE,           REG_ADD},
     {"clr",	5,		1,          NONE,           REG_ADD},
@@ -78,7 +78,7 @@ const operatorNode CPUCommands[] = {
  * Not contains command names and register names
  * which are keywords too
  */
-const char const *keywordTab[] = {
+const char *keywordTab[] = {
     ".data",
     ".struct",
     ".extern",
@@ -88,7 +88,7 @@ const char const *keywordTab[] = {
 };
 
 /* Charcters of 'Strange Base-32' */
-const char const base32Digit[] = {'!', '@', '#', '%', '^', '&', '*', '<', '>',
+const char base32Digit[] = {'!', '@', '#', '%', '^', '&', '*', '<', '>',
 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
 'p', 'q', 'r', 's', 't', 'u', 'v' };
 

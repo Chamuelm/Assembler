@@ -11,10 +11,6 @@
 #define SECONDPASS_H
 
 void secondPass();
-void procEntry2(line *l);
-void checkInstArr();
-int checkOperandName(operand *op);
-
 
 #endif /* SECONDPASS_H */
 

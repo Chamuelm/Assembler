@@ -8,7 +8,8 @@
  * 
  */
 
-
+#ifndef ERRORS_H
+#define ERRORS_H
 
 enum errorsShort {
     ERR_COMMA_BEFOR_PARAM,          /* Invalid comma before parameter */
@@ -43,3 +44,7 @@ enum errorsShort {
     ERR_VAR_NOT_EXIST,              /* Variable is not exist */
     NON_ERROR
 };
+
+typedef enum errorsShort error;
+
+#endif
