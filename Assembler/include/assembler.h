@@ -87,7 +87,7 @@ enum codingType {ABSOLUTE, EXTERNAL, RELOCATABLE};
 
 /******************** Main structure global variables ***********************/
 #ifndef MAIN_C
-extern struct instruction_s *instArr; 		/* Instructions array */
+extern struct instruction_s instArr[MAX_INSTRUCTIONS]; 		/* Instructions array */
 extern int instIndex;				/* Instructions array index */
 extern int *dataArr; 		/* Data Array */
 extern int IC; 					/* Instructions counter */
@@ -102,7 +102,7 @@ extern char *fileName; 				/* Name of active file */
 /***************** Constants in constants.c declerations ********************/
 #ifndef CONSTANTS_C 
 extern const char *errorsTab[];                             /* Errors constants table */
-extern const struct operatorNode_s *CPUCommands;        /* Commands constants table */
+extern const struct operatorNode_s CPUCommands[];        /* Commands constants table */
 extern const char *CMDNames[];
 extern const char *keywordTab[];                         /* Keywords table */
 extern const char base32Digit[];                           /* Strange Base-32 digits */

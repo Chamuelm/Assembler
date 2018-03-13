@@ -131,7 +131,7 @@ operand *getOperand(line *l) {
     else if(isRegister(s))
     {
         op->data = s;
-        op->type = REG_ADD;
+        op->type = REGISTER;
     }
     /************ Addressing Type: STRUCT ************/
     else if(isStruct(s))

@@ -47,7 +47,7 @@ symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType ) {
     unsigned hashval;
     
     if((np = symLookup(newName)) == NULL) {	/* Check if symbol already exist */
-        np = (symbol *) malloc(sizeof(*np));
+        np = (symbol *) malloc(sizeof(symbol));
         if(np == NULL)	/* Successful alloc? */
             exitMemory();	/* Exit if memory allocation failed */
         
@@ -95,13 +95,22 @@ void removeSymbol(symbol *toRemove) {
     }
 }
 
-/*	Initialize symbol table */
+/*	Initialize symbol table with NULLs  */
 void symTableInit() {
+    int i;
+    
+    for(i=0; i < HASHSIZE; i++)
+            symTable[i] = NULL;
+}
+
+/*	Release symbol table */
+void symTableRelease() {
     int i;
     
     for(i=0; i < HASHSIZE; i++) {
         if(symTable[i] != NULL) {
             freeSymbol(symTable[i]);
+            free((symbol *)symTable[i]);
             symTable[i] = NULL;
         }
     }
@@ -109,10 +118,11 @@ void symTableInit() {
 
 /* freeSymbol:	free symbol and all symbols attached to it. */
 void freeSymbol(symbol *s) {
-    if (s->next != NULL)		/* If chained to more symbols recursivly free them */
+    if (s->next != NULL) {		/* If chained to more symbols recursivly free them */
         freeSymbol(s->next);
-    free(s->name);					/* Free name pointer */
-    free(s);								/* Free symbol pointer */
+        free(s->next);      /* Free next symbol pointer */
+    }
+    free(s->name);	/* Free name pointer */
 }
 
 /* symbolAddressAdd: adds x to non-external symbols' address */

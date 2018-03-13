@@ -37,6 +37,7 @@ extern symbol *symTable[HASHSIZE];
 symbol *symLookup(char *s);
 symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType);
 void symTableInit();
+void symTableRelease();
 void symbolsAddressAdd(int x);
 void removeSymbol(symbol *toRemove);
 

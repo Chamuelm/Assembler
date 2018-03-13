@@ -43,17 +43,17 @@ const char *errorsTab[] = {
     "Missing string parameter",
     "Invalid string parameter, String must be in quotation marks",
     "Cannot mark external variable as entry",
-    "Variable is not exist"
+    "Variable does not exist"
 };
 
 /* CPU commands:
  * 	Name		Name as string
  * 	Opcode		Opcode value
- * 	operators	Number of operators for this command
+ * 	Operands                  Number of operands for this command
  * 	SrcAdd		Source addressing types allowed (Described in enum allowedAddTypes in assembler.h)
  * 	DestAdd		Destination addressing types allowed
  *  */
-/*  Name        Opcode  Operators   SrcAdd  DestAdd	  */
+/*  Name        Opcode  Operands   SrcAdd  DestAdd	  */
 const operatorNode CPUCommands[] = {
     {"mov",0,		2,          ALL_ADD,        REG_ADD},
     {"cmp",     1,		2,          ALL_ADD,        ALL_ADD},
@@ -107,7 +107,7 @@ const char *keywordTab[] = {
 };
 
 /* Charcters of 'Strange Base-32' */
-const char base32Digit[] = {'!', '@', '#', '%', '^', '&', '*', '<', '>',
+const char base32Digit[] = {'!', '@', '#', '$', '%', '^', '&', '*', '<', '>',
 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
 'p', 'q', 'r', 's', 't', 'u', 'v' };
 

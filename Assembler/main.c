@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
         exit (EXIT_FAILURE);
     }
     
+    symTableInit();    
+    
     while (--argc > 0) { /* Proccesing for each input file */
         fileName = *++argv;
         /* Cat file extension */
@@ -96,7 +98,7 @@ void assembler() {
     }
 
     /* Memory release */
-    symTableInit();
+    symTableRelease();
     freeInstArr();
 }
 

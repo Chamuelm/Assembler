@@ -55,7 +55,7 @@ void createObjectsFile() {
     
     /* Add instructions to file */
     for (i=0; i<instIndex; i++) {
-        fAddInst(ob, &instArr[i]);
+        fAddInst(ob, instArr+i);
     }
     
     /* Add data to file */

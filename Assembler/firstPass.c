@@ -27,7 +27,7 @@ void firstPass() {
     int lineC;                      /* Line counter */
     error err;           /* Stores error codes */
     enum lineTypes lType;           /* Stores line type */
-    char *word, *temp;                     /* Temporary word pointer */
+    char *word;                     /* Temporary word pointer */
     line *currLine;                 /* Temporary line pointer */	
     int isValidSymbol;              /* Symbol flag */
     symbol *sym;                    /* Symbol pointer */
@@ -39,6 +39,9 @@ void firstPass() {
     /* Processing each line */
     for (;;) {
         lineC++;
+        isValidSymbol = 0;
+        sym = NULL;
+        
         currLine = lineInit(lineC);
         if (!fgets(currLine->data, MAX_LINE_LEN, fp)){ 
             free(currLine);
@@ -65,9 +68,7 @@ void firstPass() {
          */
         if (isSymbol(word)) {
             /* Remove colon sign and release unused memory */
-            temp = word;
-            word = removeColon(temp);
-            free(temp);
+            word = removeColon(word);
             
             if ((err = checkSymbol(word)) == NON_ERROR) {
                 isValidSymbol = 1;
@@ -211,6 +212,7 @@ void procCommand(line *l, char *word) {
                 lerror(ERR_MISS_PARAM, l->lineNum);	/* Missing operand */
             else {
                 if(!checkComma(l)) {	/* look for comma between parameters */
+                    l->i++;
                     op2 = getOperand(l);
                     if(!op2)	/* If no comma and not operand */
                         lerror(ERR_MISS_PARAM, l->lineNum);	/* Missing operand */
@@ -219,6 +221,7 @@ void procCommand(line *l, char *word) {
                         addInstruction(c, op1, op2, l->lineNum);
                     }
                 } else { /* received comma */
+                    l->i++;
                     op2 = getOperand(l);
                     if(!op2)
                         lerror(ERR_MISS_PARAM, l->lineNum);	/* Missing operand */
@@ -290,16 +293,13 @@ void procString(line *l) {
     c = l->data[l->i++];
     if(c == '\"') {	/* Start of string */
         /* Add chars to data table until end of string */
-        c = l->data[l->i++];
-        while (c != '\n') {
+        while ((c = l->data[l->i++]) != '\n') {
             if (c == '\"') {	/* = end of string */
                 addData('\0');
                 break;
             }
-            else {
+            else 
                 addData(c);
-                l->i++;
-            }
         }
         
         if (c == '\n') {	/* Error if not received closing quotation mark */
@@ -369,16 +369,14 @@ void procExtern(line *l) {
 /* removeColon:	Return new string of label without ending colon sign */
 char *removeColon(char *symbolName) {
     int n;
-    char *new;
     
     n = strlen(symbolName);
-    new = (char *)malloc(sizeof(char)*n);
-    if (!new) { /* Allocation check */
+    symbolName = (char *)realloc(symbolName, sizeof(char)*n);
+    if (!symbolName) { /* Allocation check */
         exitMemory();
     } else {
-        new = strncpy(new, symbolName, n-1);
-        new[n-1] = '\0';
+        symbolName[n-1] = '\0';
     }
     
-    return new;
+    return symbolName;
 }

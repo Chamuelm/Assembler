@@ -12,7 +12,6 @@
 #include <string.h>
 #include "include/assembler.h"
 
-extern const struct operatorNode_s *CPUCommands;
 
 /* checkSymbol:	Check label for possible errors:
  *  - Length higher than MAX_LABEL_LEN
@@ -147,10 +146,10 @@ error isValidNum(char *s) {
             return ERR_PARAM_SIGN;
     }
     
-    while (s[i]!='\0' && s[i]!=' ' && s[i]!='\t') {
+    while (s[i]!='\0' && s[i]!=' ' && s[i]!='\t' && s[i]!='\n') {
         if(isdigit(s[i]))
             i++;
-        else	/* Invalid chracter */
+        else  /* Invalid chracter */
             return ERR_PARAM_CHAR;
     }
     
@@ -186,9 +185,13 @@ error checkStructName(char *s) {
     
     /* Check symbol name validity */
     if(checkSymbol(s) != NON_ERROR)
+    {
+        s[n-2] = '.';
         return ERR_STRUCT_NAME;
-    else
+    } else {
+        s[n-2] = '.';
         return NON_ERROR;
+    }
     
     s[n-2] = '.';  /* Retrive membre access */
 }

@@ -55,9 +55,13 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
+        <gdb_signals>
+        </gdb_signals>
         <gdb_options>
           <DebugOptions>
             <option name="debug_dir" value="/home/moshe/Netbeans/assembler/Assembler/."/>
+            <option name="symbol_file"
+                    value="/home/moshe/Netbeans/assembler/Assembler/assembler"/>
           </DebugOptions>
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
