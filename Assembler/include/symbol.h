@@ -13,9 +13,6 @@
 #ifndef SYMBOL_H
 #define SYMBOL_H
 
-/************************* Constants definition ****************************/
-#define HASHSIZE 101
-
 /************************** Struct definition *****************************/
 typedef struct symbol_s symbol;
 struct symbol_s {
@@ -40,5 +37,6 @@ void symTableInit();
 void symTableRelease();
 void symbolsAddressAdd(int x);
 void removeSymbol(symbol *toRemove);
+void printSymTable();
 
 #endif

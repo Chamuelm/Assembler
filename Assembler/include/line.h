@@ -29,6 +29,8 @@ void skipWhite(line *l);
 int isEOL(line *l);
 int checkComma(line *l);
 enum lineTypes getLineType(char *cmd);
+error checkEOL(line *l);
+int isCompleteLine(line *l);
 
 #endif /* LINE_H */
 

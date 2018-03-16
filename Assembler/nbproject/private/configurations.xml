@@ -2,11 +2,20 @@
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
+      <df name=".externalToolBuilders">
+      </df>
       <df name=".settings">
+      </df>
+      <df name="examples">
+        <in>Warnings.as</in>
+        <in>example1.as</in>
+        <in>ps.as</in>
+        <in>test.as</in>
       </df>
       <df name="include">
         <in>assembler.h</in>
         <in>errors.h</in>
+        <in>external.h</in>
         <in>firstPass.h</in>
         <in>instruction.h</in>
         <in>line.h</in>
@@ -19,6 +28,7 @@
       <df name="obj">
       </df>
       <in>constants.c</in>
+      <in>external.c</in>
       <in>firstPass.c</in>
       <in>instruction.c</in>
       <in>line.c</in>
@@ -26,7 +36,6 @@
       <in>output.c</in>
       <in>secondPass.c</in>
       <in>symbol.c</in>
-      <in>test.as</in>
       <in>utils.c</in>
     </df>
   </logicalFolder>
@@ -71,7 +80,6 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" </runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" ./test</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" test.as</runcommandpicklistitem>
@@ -80,8 +88,10 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" test</runcommandpicklistitem>
           <runcommandpicklistitem>../assembler test</runcommandpicklistitem>
           <runcommandpicklistitem>./assembler test</runcommandpicklistitem>
+          <runcommandpicklistitem>./assembler ex</runcommandpicklistitem>
+          <runcommandpicklistitem>./assembler examples/Warnings</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>./assembler test</runcommand>
+        <runcommand>./assembler examples/Warnings</runcommand>
         <rundir>/home/moshe/Netbeans/assembler/Assembler/.</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>

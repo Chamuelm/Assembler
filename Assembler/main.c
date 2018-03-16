@@ -53,6 +53,7 @@ int main(int argc, char *argv[]) {
     }
     
     symTableInit();    
+    extTableInit();
     
     while (--argc > 0) { /* Proccesing for each input file */
         fileName = *++argv;
@@ -79,7 +80,6 @@ void assembler() {
     entryExist = 0;     /* Entry existance flag initialization */
     externExist = 0;    /* Extern existance flag initialization */
     errorsDetected = 0; /* Errors flag initialization */
-    symTableInit();     /* Symbol table initialization */
     
     dataArr = (int *)malloc(sizeof(int)*MAX_INSTRUCTIONS);
     if (!dataArr)
@@ -91,15 +91,18 @@ void assembler() {
     
     /* Exit if errors deceted, otherwise create output files */
     if (errorsDetected) {
-        fprintf(stderr, "File %s is not compiled due to the errors above.\n", fileName);
-        return;
+    	fprintf(stderr, "File %s is not assembled due to the errors above.\n", fileName);
+    	return;
     } else {
-        createOutputFiles();
+    	createOutputFiles();
+                printf("File %s sucessfully assembled!\n", fileName);
     }
 
-    /* Memory release */
+   /* Memory release */
     symTableRelease();
+    extTableRelease();
     freeInstArr();
+    free(dataArr);
 }
 
 

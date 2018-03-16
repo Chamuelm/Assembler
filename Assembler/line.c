@@ -215,3 +215,37 @@ enum lineTypes getLineType(char *cmd) {
         return UNKNOWN;
 }
 
+/* checkEOL:    Check for end of line:
+ * return error for extra parameter/extra text/extra comma
+ */
+error checkEOL(line *l) {
+    
+    /* Return NON_ERROR if rest of line is white spaces */
+    if (isEOL(l))
+        return NON_ERROR;
+    
+    /* Check for comma - if there is comma so check for parameter or return error for extra comma  */
+    if (checkComma(l)) {
+        l->i++;             /* increment line index to skip comma */
+        skipWhite(l);       /* Skip white spaces after comma if exist */
+        
+        if (l->i < MAX_LINE_LEN && l->data[l->i] != '\n')
+            return ERR_MORE_PARAM0; /* Indicate for extra parameter in line */    
+        else
+            return ERR_COMMA_EXTRA;  /* Indicate for extra comma after parameters */
+    } else { /* No comma */
+        if (l->i < MAX_LINE_LEN && l->data[l->i] != '\n')
+            return ERR_CMD_EXTRA_TEXT;      /* Indicate for extra text after parameters */
+        else
+            return NON_ERROR;   /* No comma and no extra text after */
+    }
+}
+
+/* isCompleteLine:  Check if l is full input line by looking for '\n' */
+int isCompleteLine(line *l) {
+    int i;
+    for (i=0; i<MAX_LINE_LEN; i++)
+        if (l->data[i] == '\n')
+            return TRUE;
+    return FALSE;
+}

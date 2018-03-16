@@ -10,6 +10,7 @@
 #define OUTPUT_H
 
 void createOutputFiles();
+void intToBase32STR(int num, char *dest);
 
 #endif /* OUTPUT_H */
 

@@ -5,7 +5,7 @@
  *
  * Contains symbols table decleration and functions related.
  * Symbols table is a hash table with the size HASHSIZE which is
- * declared in symbol.h file
+ * declared in assembler.h file
  * 
  */
 #define SYMBOL_C
@@ -13,23 +13,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned int hash(char *s);
+
 void freeSymbol(symbol *s);
 void addressUpdate(symbol *s, int x);
+void printSym(symbol *sym);
 
 symbol *symTable[HASHSIZE];		/* Symbols table */
-
-
-
-
-/* hash:	form hash value for string s */
-unsigned int hash(char *s) {
-    unsigned int hashval;
-    
-    for (hashval = 0; *s != '\0'; s++)
-        hashval = *s + 31*hashval;
-    return hashval % HASHSIZE;
-}
 
 /*	symLookup: look for s in symTable */
 symbol *symLookup(char *s) {
@@ -60,9 +49,6 @@ symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType ) {
         strcpy(np->name, newName);
         symTable[hashval] = np;
         
-        /* Address update by first memory address if symbol is not external */
-        if (newType != EXTERN)
-            np->address += MEMORY_START_ADDRESS;
     } else	/* Symbol already exist! */
         return NULL;
     return np; /* symboll added fine */
@@ -110,7 +96,6 @@ void symTableRelease() {
     for(i=0; i < HASHSIZE; i++) {
         if(symTable[i] != NULL) {
             freeSymbol(symTable[i]);
-            free((symbol *)symTable[i]);
             symTable[i] = NULL;
         }
     }
@@ -120,9 +105,8 @@ void symTableRelease() {
 void freeSymbol(symbol *s) {
     if (s->next != NULL) {		/* If chained to more symbols recursivly free them */
         freeSymbol(s->next);
-        free(s->next);      /* Free next symbol pointer */
     }
-    free(s->name);	/* Free name pointer */
+    free(s);
 }
 
 /* symbolAddressAdd: adds x to non-external symbols' address */
@@ -135,13 +119,43 @@ void symbolsAddressAdd(int x) {
     }
 }
 
-/* Updates symbol s address with addition of x if internal variable 
+/* Updates symbol s address with addition of x (IC) if internal variable.
+ * Add MEMORY_START_ADDRESS to all non-external symbols.
  * and continue to chained symbols */
 void addressUpdate(symbol *s, int x) {
     if (s->next != NULL)		/* If chained to more symbols recursivly update them as well */
         addressUpdate(s->next, x);
     
     /* Adds to internals variables */
-    if ((s->type != EXTERN) && (s->type != COMMAND))
-        s->address += x;
+    if (s->type == DATA)
+        s->address += (x+MEMORY_START_ADDRESS);
+    else if (s->type == COMMAND)
+    	s->address += MEMORY_START_ADDRESS;
+}
+
+void printSymTable() {
+	int i;
+
+	printf("Symbols Table:\n\n ");
+	for (i=0; i<HASHSIZE; i++) {
+		if (symTable[i])
+			printSym(symTable[i]);
+	}
+}
+
+void printSym(symbol *sym) {
+	char code[3];
+
+	intToBase32STR(sym->address, code);
+	printf("%s:\tAddress: %d, Coding: %s\n",sym->name, sym->address, code);
+	if (sym->type == COMMAND)
+		intToBase32STR((((sym->address)<<2)), code);
+	else if (sym->address == EXTERNAL_ADDRESS)
+		intToBase32STR((((sym->address)<<2)|1), code);
+	else
+		intToBase32STR((((sym->address)<<2)|2), code);
+	printf("\tCoding with coding type: %s\n\n", code);
+
+	if(sym->next)
+		printSym(sym->next);
 }

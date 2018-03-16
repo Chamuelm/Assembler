@@ -12,7 +12,6 @@
 
 /***************** Internal Functions Declerations ********************/
 void createObjectsFile();
-void intToBase32STR(int num, char *dest);
 void fAddLine(FILE *fileP, char *str1, char *str2);
 void fAddInst(FILE *fileP, instruction *x);
 void fAddInst0op(FILE *fileP, instruction *x);
@@ -23,8 +22,10 @@ void fAddImmediateWord(FILE *fileP, char *data, int address);
 void fAddRegisterWord(FILE *fileP, char *srcData, char *destData, int address);
 void fAddDirectWord(FILE *fileP, char *data, int address);
 int getAddressingTypeCode(enum addressingType type);
-void createExtEntFiles();
-void fAddExtEnt(symbol *sym, FILE *ext, FILE *ent);
+void createEntFile();
+void fAddEnt(symbol *sym, FILE *ent);
+void createExtFile();
+void fAddExt(externNode *e, FILE *ext);
 FILE *extFileOpen();
 FILE *entFileOpen();
 FILE *objFileOpen();
@@ -35,8 +36,12 @@ FILE *objFileOpen();
 void createOutputFiles() {
     
     createObjectsFile();    /* Objects file creation */
-    createExtEntFiles();    /* External symbols and entries
-                             * files creation (if needed) */
+    
+    if (entryExist)
+        createEntFile();
+    
+    if (externExist)
+        createExtFile();
 }
 
 /* createObjectFile:    create object file of current active assembly file */
@@ -124,14 +129,14 @@ void fAddInst(FILE *fileP, instruction *x) {
 }
 
 /* fAddInst0op: Add coded instruction line of commands 
-                with no parameters */
+ with no parameters */
 void fAddInst0op(FILE *fileP, instruction *x) {
     /* Just add command word as there is no additional words */
     fAddCommandWord(fileP, x);
 }
 
 /* fAddInst1op: Add coded instruction line of commands 
-                with one parameters */
+ with one parameters */
 void fAddInst1op(FILE *fileP, instruction *x) {
     int n;
     
@@ -139,7 +144,7 @@ void fAddInst1op(FILE *fileP, instruction *x) {
     fAddCommandWord(fileP, x);    
     
     /***** Add additional words by oprand addressing type *****/
-
+    
     switch(x->op1->type) {
 	case IMMEDIATE:
             /* Add additional word with the operand data in the 
@@ -152,7 +157,7 @@ void fAddInst1op(FILE *fileP, instruction *x) {
         case REGISTER:
             fAddRegisterWord(fileP, NULL, x->op1->data, x->memAddress+1);
             /* Command with 1 operand is always dest operand 
-                therefore src register is NULL */
+             therefore src register is NULL */
             break;
 	case STRUCT_ADD:
             n = strlen(x->op1->data);
@@ -161,8 +166,8 @@ void fAddInst1op(FILE *fileP, instruction *x) {
             
             (x->op1->data)[n-2] = '.'; /* Retrive struct member data */
             fAddImmediateWord(fileP, ((x->op1->data)+(n-1)), x->memAddress+2);
-                /* +(n-1) to skip to struct member,
-                 * addressOffset+2 - this is the 2nd additional word */
+            /* +(n-1) to skip to struct member,
+             * addressOffset+2 - this is the 2nd additional word */
             break;
         default:
             break;
@@ -170,7 +175,7 @@ void fAddInst1op(FILE *fileP, instruction *x) {
 }
 
 /* fAddInst2op: Add coded instruction line of commands 
-                with 2 parameters */
+ with 2 parameters */
 void fAddInst2op(FILE *fileP, instruction *x) {
     int n;
     int wordNum = 1;        /* Address offset from command word memory location */
@@ -199,12 +204,12 @@ void fAddInst2op(FILE *fileP, instruction *x) {
             n = strlen(x->op1->data);
             (x->op1->data)[n-2] = '\0'; /* Ignore struct member */
             fAddDirectWord(fileP, x->op1->data, x->memAddress+wordNum);
-            wordNum++;  /* Increment word number - struct address is 2 additional words */
+            wordNum++;  /* Increment word number - struct address has 2 additional words */
             
             (x->op1->data)[n-2] = '.'; /* Retrive struct member data */
             fAddImmediateWord(fileP, ((x->op1->data)+(n-1)), x->memAddress+wordNum);
-                /* +(n-1) to skip to struct member,
-                 * addressOffset+2 - this is the 2nd additional word */
+            /* +(n-1) to skip to struct member,
+             * addressOffset+2 - this is the 2nd additional word */
             break;
         default:
             break;
@@ -213,7 +218,7 @@ void fAddInst2op(FILE *fileP, instruction *x) {
                 * address's addistional words */
     
     /***** Add additional words for destination operand *****/
-        switch(x->op2->type) {
+    switch(x->op2->type) {
 	case IMMEDIATE:
             /* Add additional word with the operand data in the 
              next address after command word */
@@ -232,12 +237,12 @@ void fAddInst2op(FILE *fileP, instruction *x) {
             wordNum++;  /* Increment word number - struct address is 2 additional words */
             
             (x->op2->data)[n-2] = '.'; /* Retrive struct member data */
-            fAddImmediateWord(fileP, ((x->op1->data)+(n-1)), x->memAddress+wordNum);
-                /* +(n-1) to skip to struct member,
-                 * addressOffset+2 - this is the 2nd additional word */
+            fAddImmediateWord(fileP, ((x->op2->data)+(n-1)), x->memAddress+wordNum);
+            /* +(n-1) to skip to struct member,
+             * addressOffset+2 - this is the 2nd additional word */
             break;
-            default:
-                break;
+        default:
+            break;
     }
 }
 
@@ -256,7 +261,7 @@ void fAddCommandWord(FILE *fileP, instruction *x) {
     
     /* Add opcode representation to instCode*/
     wordCode = x->cmd->opcode << CODE_OPCODE_LOC;
-
+    
     /* Add addressing types representations yo instCode */    
     switch (x->cmd->operatorsNum)
     {
@@ -265,7 +270,7 @@ void fAddCommandWord(FILE *fileP, instruction *x) {
             break;
         case 1:
             /* Operand addressing type is destination addressing type so
-               add dest addressing type representation to instCode */
+             add dest addressing type representation to instCode */
             wordCode |= (getAddressingTypeCode(x->op1->type)<<CODE_DEST_OP_LOC);
             break;
         case 2:
@@ -314,11 +319,11 @@ void fAddRegisterWord(FILE *fileP, char *srcData, char *destData, int address) {
     
     /* Add src register number if exist */
     if(srcData)
-        wordData |= atoi(srcData+1)<<CODE_SRC_OP_LOC; /* +1 to skip 'r' register prefix */
+        wordData |= atoi(srcData+1)<<CODE_REG_SRC_ADD_LOC; /* +1 to skip 'r' register prefix */
     
     /* Add dest register number if exist */
     if(destData)
-        wordData |= atoi(destData+1)<<CODE_DEST_OP_LOC;
+        wordData |= atoi(destData+1)<<CODE_REG_DEST_ADD_LOC;
     
     /* Convert to string representation */
     intToBase32STR(address, addressSTR);
@@ -343,7 +348,7 @@ void fAddDirectWord(FILE *fileP, char *data, int address) {
     /* No need to check is exist, check done in second pass */
     
     /* Get word data */
-    wordCode = sym->address<<CODE_DATA_LOC;
+    wordCode = (sym->address)<<CODE_DATA_LOC;
     
     /* Get word coding type */
     wordCode |= (sym->address == EXTERNAL_ADDRESS)?EXTERNAL:RELOCATABLE;
@@ -361,72 +366,88 @@ void fAddDirectWord(FILE *fileP, char *data, int address) {
  * getAddressingTypeCode: Return numeric representation of addresing type
  */
 int getAddressingTypeCode(enum addressingType type) {
-     switch (type) {
-         case IMMEDIATE:
-             return 0;
-             break;
-         case DIRECT:
-             return 1;
-             break;
-         case STRUCT_ADD:
-             return 2;
-             break;
-         case REGISTER:
-             return 3;
-             break;
-         default:
-             return 0;
-             break;
-     }
+    switch (type) {
+        case IMMEDIATE:
+            return 0;
+            break;
+        case DIRECT:
+            return 1;
+            break;
+        case STRUCT_ADD:
+            return 2;
+            break;
+        case REGISTER:
+            return 3;
+            break;
+        default:
+            return 0;
+            break;
+    }
 }
 
-/* createExtEntFiles:   create extern and entry file of current active
-                        assembly file (if needed) */
-void createExtEntFiles() {
-    FILE *ext, *ent;
+/* createEntFile:   create entry file of current active assembly file  */
+void createEntFile() {
+    FILE *ent;
     int i;
     
-    /* if there are external symbols create file */
-    if (externExist)
-        ext = extFileOpen();
-    
-    /* if there are entries symbols create file */
-    if (entryExist)
-        ent = entFileOpen();
-
-    /* Scan symbols table and add externals or entries to files when occure */
-    for (i=0; i<HASHSIZE; i++) {
-        if(symTable[i])
-            fAddExtEnt(symTable[i], ext, ent);
-    }
-    
-    /* File close if need */
-    if (externExist)
-        fclose(ext);
-    if (entryExist)
+    ent = entFileOpen();
+    if (ent) {
+        /* Scan symbols table and add entries to file when occure */
+        for (i=0; i<HASHSIZE; i++) {
+            if(symTable[i])
+                fAddEnt(symTable[i], ent);
+        }
+        
         fclose(ent);
+    }
 }
 
-/* fAddExtEnt:  Scan symbols table and add externals to ext or entries to 
- *              ent when occure */
-void fAddExtEnt(symbol *sym, FILE *ext, FILE *ent) {
+/* fAddEnt:  Scan symbols table and add  entries to ent when occure */
+void fAddEnt(symbol *sym, FILE *ent) {
     char addressSTR[BASE_32_LEN+1]; /* +1 for '\0' */
     
     if (sym->isEntry) {                             /* Add to ent if entry */
         intToBase32STR(sym->address, addressSTR);
         fAddLine(ent, sym->name, addressSTR);
-    } else if (sym->address == EXTERNAL_ADDRESS) {  /* Add to ext if external */
-        intToBase32STR(sym->address, addressSTR);
-        fAddLine(ext, sym->name, addressSTR);
     }
     
     /* Recursive call to continue table scan */
     if (sym->next)
-        fAddExtEnt(sym->next, ext, ent);
+        fAddEnt(sym->next, ent);
+}
+
+/* createExtFile:   create extern file of current active assembly file  */
+void createExtFile() {
+    FILE *ext;
+    int i;
+    
+    ext = extFileOpen();
+    if (ext) {
+        /* Scan externals table and add externals to file */
+        for (i=0; i<HASHSIZE; i++) {
+            if(extTable[i])
+                fAddExt(extTable[i], ext);
+        }
+        
+        fclose(ext);
+    }
+}
+
+/* fAddExt:  Scan externals table and add externals to ent */
+void fAddExt(externNode *e, FILE *ext) {
+    char addressSTR[BASE_32_LEN+1]; /* +1 for '\0' */
+    
+    intToBase32STR(e->address, addressSTR);
+        fAddLine(ext, e->sym->name, addressSTR);
+    
+    
+    /* Recursive call to continue table scan */
+    if (e->next)
+        fAddExt(e->next, ext);
 }
 
 /* extFileOpen: Opens new file for ext output file.
-                Delete if exist */
+ Delete if exist */
 FILE *extFileOpen() {
     char *extFileName;
     FILE *ext;
@@ -436,37 +457,33 @@ FILE *extFileOpen() {
     
     /* Open externals file */
     ext = fopen(extFileName, "w+");
-    if (!ext) { /* If fopen fails print error and stop process */
+    if (!ext) /* If fopen fails print error */
         fprintf(stderr, "Error: cannot create file %s: %s\n", extFileName, strerror(errno));
-        exit(EXIT_FAILURE);
-    }
     
     free(extFileName);
     return ext;
 }
 
 /* entFileOpen: Opens new file for ent output file.
-                Delete if exist */
+ Delete if exist */
 FILE *entFileOpen() {
     char *entFileName;
     FILE *ent;
-    
+
     /* Determine entries file name */
     entFileName = strdcat(fileName, entryFileExtension);
     
     /* Open entries file */
     ent = fopen(entFileName, "w+");
-    if (!ent) { /* If fopen fails print error and stop process */
+    if (!ent) /* If fopen fails print error and stop process */
         fprintf(stderr, "Error: cannot create file %s: %s\n", entFileName, strerror(errno));
-        exit(EXIT_FAILURE);
-    }
     
     free(entFileName);
     return ent;
 }
 
 /* objFileOpen: Opens new file for object output file.
-                Delete if exist */
+ Delete if exist */
 FILE *objFileOpen() {
     char *objFileName;
     FILE *obj;

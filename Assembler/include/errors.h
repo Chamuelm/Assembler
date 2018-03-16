@@ -15,6 +15,7 @@ enum errorsShort {
     ERR_COMMA_BEFOR_PARAM,          /* Invalid comma before parameter */
     ERR_COMMA_EXPECTED,             /* Expected comma */
     ERR_COMMA_EXTRA,                /* Extra comma after parameter */
+    ERR_COMMA_ENEXPECTED,            /* Unexpected comma */
     ERR_MEMORY,                     /* Not enough memory. Exiting... */
     ERR_LABEL_MISSING,              /* Label name missing */
     ERR_LABEL_LONG,                 /* Invalid label: length exceeded maximum allowed */
@@ -42,6 +43,8 @@ enum errorsShort {
     ERR_STR_QMARK,                  /* Invalid string parameter, String must be in quotation marks */
     ERR_EXTERN_ENTRY,               /* Cannot mark external variable as entry */
     ERR_VAR_NOT_EXIST,              /* Variable is not exist */
+    ERR_SRCADD_TYPE,                /* Source addressing type is illegal for that command */
+    ERR_DESTADD_TYPE,                /* Destination addressing type is illegal for that command */
     NON_ERROR
 };
 

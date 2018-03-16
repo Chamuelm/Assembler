@@ -51,12 +51,15 @@ error checkSymbol(char *symbol) {
  * Returns pointer to command or NULL if unknown command
  */
 operatorNode *getCommand(char *comm) { 
-    int idx;
+    int idx, operation;
     operatorNode *c = NULL;
-    
-    for (idx = 0; idx < CPU_COMMANDS_NUM; idx++)
-        if (my_strcmp(CMDNames[idx], comm) == TRUE)
-            c = (operatorNode *)&CPUCommands[idx];
+
+    operation = TRUE;
+    for (idx = 0; idx < CPU_COMMANDS_NUM && operation; idx++)
+    	if (strcmp(CPUCommands[idx].name, comm) == 0) {
+    		c = (operatorNode *)&CPUCommands[idx];
+    		operation = FALSE;
+    	}
     
     return c;
 }
@@ -142,7 +145,7 @@ error isValidNum(char *s) {
     /* Skip sign if exist */
     if (s[i] == '+' || s[i] == '-') {
         i++;
-        if (s[i] == '\0' || s[i] == ' ' || s[i] == '\t')	/* sign without number */
+        if (!isdigit(s[i]))	/* sign without number */
             return ERR_PARAM_SIGN;
     }
     
@@ -247,28 +250,20 @@ error checkEntry(char *s) {
         return ERR_VAR_NOT_EXIST;
 }
 
-/*  my_strcmp:  Returns TRUE if str1 and str2 are same */
-int my_strcmp(const char * str1, const char *str2) {
-    int n1, n2;
-    int i1, i2;
+/* hash:	form hash value for string s */
+unsigned int hash(char *s) {
+    unsigned int hashval;
     
-    n1 = my_strlen(str1);
-    n2 = my_strlen(str2);
-    
-    for (i1=i2=0; i1<n1 && i2<n2; i1++, i2++) {
-        if (str1[i1] != str2[i2])
-            return FALSE;
-    }
-    
-    if (i1<n1 || i2<n2)
-        return FALSE;
-    
-    return TRUE;
+    for (hashval = 0; *s != '\0'; s++)
+        hashval = *s + 31*hashval;
+    return hashval % HASHSIZE;
 }
 
-int my_strlen(const char *str) {
-    int c = 0;
-    while (str[c] != '\0')
-        c++;
-    return c;
+/* skipEnd:       Seek file pointer untill find '\n'
+ * Reads one character each time and check for '\n' or EOF */
+void skipEnd(FILE *fileP) {
+    char c = 0;
+    
+    while(c != '\n' && c != EOF)
+        fread(&c, sizeof(char), 1, fileP);
 }

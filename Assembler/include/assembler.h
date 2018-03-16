@@ -13,12 +13,13 @@
 #define ASSEMBLER_H
 
 /************************* Constants definitions ****************************/
+#define HASHSIZE 101                    /* Hash size to use in hash tables */
 #define MAX_LINE_LEN 81             /* Maximum length of line in code includes '\n' */
 #define MAX_INSTRUCTIONS 1000       /* Maximum number of instructions in one file */
 #define MAX_DATA  1000              /* Maximum number of data in one file */
 #define MAX_LABEL_LEN 30            /* Maximum length of label */
-#define MAX_NUMBER	512         /* Maximum number allowed in computer' hardware */
-#define MIN_MUNBER	-512        /* Minimum number allowed in computer' hardware */
+#define MAX_NUMBER	256         /* Maximum number allowed in computer' hardware */
+#define MIN_MUNBER	-255        /* Minimum number allowed in computer' hardware */
 #define SIGN_BIT_MASK	1024        /* Bit mask of sign bit in 10-bit number */
 #define EXTERNAL_ADDRESS 0             /* Empty address and default for externs*/
 #define FALSE	0                   /* Return value is false or invalid */
@@ -33,6 +34,8 @@
 #define CODE_SRC_OP_LOC 4           /* Start bit of source addressing type location in coded instruction */
 #define CODE_DEST_OP_LOC 2          /* Start bit of destination addressing type location in coded instruction */
 #define CODE_DATA_LOC 2             /* Start bit of data location in additional words */
+#define CODE_REG_SRC_ADD_LOC 6 /* Start bit of register number for src operand */
+#define CODE_REG_DEST_ADD_LOC 2 /* Start bit of register number for destination operand */
 
 /*************************** enums declerations ******************************/
 
@@ -76,6 +79,7 @@ enum codingType {ABSOLUTE, EXTERNAL, RELOCATABLE};
 /*************************** Headers Inclution ******************************/
 #include "instruction.h"
 #include "symbol.h"
+#include "external.h"
 #include "main.h"
 #include "errors.h"
 #include "firstPass.h"
@@ -103,7 +107,6 @@ extern char *fileName; 				/* Name of active file */
 #ifndef CONSTANTS_C 
 extern const char *errorsTab[];                             /* Errors constants table */
 extern const struct operatorNode_s CPUCommands[];        /* Commands constants table */
-extern const char *CMDNames[];
 extern const char *keywordTab[];                         /* Keywords table */
 extern const char base32Digit[];                           /* Strange Base-32 digits */
 

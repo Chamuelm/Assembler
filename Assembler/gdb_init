@@ -1,0 +1,3 @@
+target remote | /usr/local/lib/valgrind/../../bin/vgdb
+set sysroot /
+define run

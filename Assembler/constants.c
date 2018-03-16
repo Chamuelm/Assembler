@@ -17,6 +17,7 @@ const char *errorsTab[] = {
     "Invalid comma before parameter", 
     "Expected comma",
     "Extra comma after parameter",
+    "Unexpected comma", 
     "Not enough memory. Exiting...",
     "Label name missing",
     "Invalid label: length exceeded maximum allowed",
@@ -43,7 +44,9 @@ const char *errorsTab[] = {
     "Missing string parameter",
     "Invalid string parameter, String must be in quotation marks",
     "Cannot mark external variable as entry",
-    "Variable does not exist"
+    "Variable does not exist",
+    "Source addressing type is illegal for that command",
+    "Destination addressing type is illegal for that command"
 };
 
 /* CPU commands:
@@ -71,25 +74,6 @@ const operatorNode CPUCommands[] = {
     {"jsr",	13,		1,          NONE,           REG_ADD},
     {"rts",	14,		0,          NONE,           NONE},
     {"stop",	15,		0,          NONE,           NONE}
-};
-
-const char *CMDNames[] = {
-    "mov",
-    "cmp",
-    "add",
-    "sub",
-    "not",
-    "clr",
-    "lea",
-    "inc",
-    "dec",
-    "jmp",
-    "bne",
-    "red",
-    "prn",
-    "jsr",
-    "rts",
-    "stop"
 };
 
 /*
