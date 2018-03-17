@@ -77,6 +77,7 @@ enum lineTypes {
 enum codingType {ABSOLUTE, EXTERNAL, RELOCATABLE};
 
 /*************************** Headers Inclution ******************************/
+#include <stdio.h>
 #include "instruction.h"
 #include "symbol.h"
 #include "external.h"
@@ -87,7 +88,6 @@ enum codingType {ABSOLUTE, EXTERNAL, RELOCATABLE};
 #include "output.h"
 #include "secondPass.h"
 #include "utils.h"
-#include <stdio.h>
 
 /******************** Main structure global variables ***********************/
 #ifndef MAIN_C

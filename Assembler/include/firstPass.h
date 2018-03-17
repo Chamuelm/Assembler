@@ -13,8 +13,8 @@
 #include "line.h"
 
 void firstPass();
-void procEntry2(line *l);
-void checkInstArr();
+enum errorsShort checkCommandAddType(operatorNode *c, operand *op1,
+        operand *op2);
 
 #endif /* FIRSTPASS_H */
 

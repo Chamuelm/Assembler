@@ -24,7 +24,7 @@ error checkEntry(char *s);
 char *strdcat(char *dest, const char *addition);
 char *strdup(char *s);
 unsigned int hash(char *s);
-void skipEnd(FILE *fileP);
+void seekEOL(FILE *fileP);
 
 #endif /* UTILS_H */
 

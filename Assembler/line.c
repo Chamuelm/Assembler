@@ -245,7 +245,7 @@ error checkEOL(line *l) {
 int isCompleteLine(line *l) {
     int i;
     for (i=0; i<MAX_LINE_LEN; i++)
-        if (l->data[i] == '\n')
+        if (l->data[i] == '\n' || l->data[i] == EOF || l->data[i] == '\0')
             return TRUE;
     return FALSE;
 }

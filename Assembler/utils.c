@@ -259,9 +259,9 @@ unsigned int hash(char *s) {
     return hashval % HASHSIZE;
 }
 
-/* skipEnd:       Seek file pointer untill find '\n'
+/* seekEOL:       Seek file pointer untill find '\n'
  * Reads one character each time and check for '\n' or EOF */
-void skipEnd(FILE *fileP) {
+void seekEOL(FILE *fileP) {
     char c = 0;
     
     while(c != '\n' && c != EOF)

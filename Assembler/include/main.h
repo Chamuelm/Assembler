@@ -13,6 +13,7 @@
 #include "errors.h"
 
 void lerror(error err, int lineNum);
+void lerror2s(error err, char *s, int lineNum);
 void lwarning(error err, int lineNum);
 void exitMemory();
 

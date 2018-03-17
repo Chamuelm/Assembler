@@ -7,15 +7,14 @@
  * 
  * Assembler program explanation:
  * For each input file:
- *  1. First pass includes instruction nodes creation, name and error checks,
+ *  1. First pass includes instruction nodes creation, error checks,
  *      symbol table creation.
- *  2. Second pass includes memory adresses updates in symbols table and 
- *      check if all used symbols are truly exist.
+ *  2. Second pass includes variable existence checks and creating externals table
  *  3. If no errors - output files creation
  * 
  */
 
-#define MAIN_C  /* Include protector for extern decleration in assembler.h */
+#define MAIN_C  /* Include protector for extern declaration in assembler.h */
 
 #include <stdlib.h>
 #include <string.h>
@@ -32,12 +31,12 @@ int *dataArr;          /* Data Array */
 int IC;                                 /* Instructions counter */
 int DC;                                 /* Data Counter */
 int errorsDetected;                     /* Errors flag */
-int entryExist;                         /* Entry existance flag */
-int externExist;                        /* Extern existance flag */
+int entryExist;                         /* Entry existence flag */
+int externExist;                        /* Extern existence flag */
 FILE *fp;                               /* Active file pointer */ 
 char *fileName;                         /* Name of active file */
 
-/***************** Internal Functions Declerations ********************/
+/***************** Internal Functions Declarations ********************/
 int main(int argc, char *argv[]);
 void assembler();
 
@@ -55,7 +54,7 @@ int main(int argc, char *argv[]) {
     symTableInit();    
     extTableInit();
     
-    while (--argc > 0) { /* Proccesing for each input file */
+    while (--argc > 0) { /* Processing for each input file */
         fileName = *++argv;
         /* Cat file extension */
         fullFileName = strdcat(fileName, sourceFileExtension);
@@ -74,11 +73,11 @@ int main(int argc, char *argv[]) {
 }
 
 void assembler() {
-    /* Varaiables initialization */
+    /* Variables initialization */
     IC = DC = 0;	/* Counter initialization */
     instIndex = 0;      /* instructions' array index initialize */
-    entryExist = 0;     /* Entry existance flag initialization */
-    externExist = 0;    /* Extern existance flag initialization */
+    entryExist = 0;     /* Entry existence flag initialization */
+    externExist = 0;    /* Extern existence flag initialization */
     errorsDetected = 0; /* Errors flag initialization */
     
     dataArr = (int *)malloc(sizeof(int)*MAX_INSTRUCTIONS);
@@ -109,6 +108,12 @@ void assembler() {
 /* lerror:	Print error message to stderr and increase error counter */
 void lerror(error err, int lineNum) {
     fprintf(stderr, "Error, line %d: %s.\n", lineNum, errorsTab[err]);
+    errorsDetected++;
+}
+
+/* lerror:	Like lerror but with 2 string parameters */
+void lerror2s(error err, char *s, int lineNum) {
+    fprintf(stderr, "Error, line %d: %s: %s.\n", lineNum, errorsTab[err], s);
     errorsDetected++;
 }
 
