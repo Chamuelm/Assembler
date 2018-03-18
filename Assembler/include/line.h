@@ -3,7 +3,7 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains function declerations of line.c
+ * Contains function declarations of line.c
  * 
  */
 
@@ -16,15 +16,15 @@
 
 /* Holds line information to pass between functions */
 typedef struct {
-	char data[MAX_LINE_LEN];    /* Contains actual line */
-	int lineNum;                          /* Line number in file */
-	int i;                                     /* Line index */
+	char data[MAX_LINE_LEN];	/* Contains actual line */
+	int lineNum;							/* Line number in file */
+	int i;										/* Line index */
 } line;
 
 line *lineInit(int lineNumber);
 char *getWord(line *l);
 char *getParameter(line *l);
-operand *getOperand(line *l);
+operand *getOperand(line *l, int reportError);
 void skipWhite(line *l);
 int isEOL(line *l);
 int checkComma(line *l);

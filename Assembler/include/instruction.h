@@ -3,7 +3,7 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Instruction, operand and operator struct definition and related functions decleration
+ * Instruction, operand and operator struct definition and related functions declaration
  * 
  */
 
@@ -37,11 +37,11 @@ typedef struct instruction_s {
     int memAddress;                     /* Address in memory */
 } instruction;
 
-/***************** External Functions Declerations ********************/
+/***************** External Functions Declarations ********************/
 void addInstruction(operatorNode *c, operand *operand1, operand *operand2, int lineNumber);
 void freeInstArr();
-int checkOperandName(operand *op);
 int calcInstructions(instruction *inst);
+void freeOperand(operand *op);
 
 #endif /* INSTRUCTION_H */
 

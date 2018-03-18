@@ -3,7 +3,7 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains main.c functions declerations
+ * Contains main.c external functions declarations
  * 
  */
 

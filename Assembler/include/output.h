@@ -1,9 +1,9 @@
 /* 
- * File:    symbol.h
+ * File:    output.h
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains function declerations of output.c
+ * Contains function declarations of output.c
  * 
  */
 #ifndef OUTPUT_H

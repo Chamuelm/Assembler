@@ -10,10 +10,9 @@
 #include <string.h>
 #include "include/assembler.h"
 
-/***************** Internal Functions Declerations ********************/
+/***************** Internal Functions Declarations ********************/
 void procEntry2(line *l);
 void procCommand2(line *l, char *word);
-void checkInstArr();
 symbol *checkVarExist(char *s);
 
 /********************** Functions Definitions *************************/
@@ -58,8 +57,9 @@ void secondPass() {
 			free(currLine);
 			operation = FALSE;
 			skipLine = TRUE;
-		}
-		if (!skipLine && !isCompleteLine(currLine)) {
+		} else if (feof(fp)) { /* Reach EOF */
+			operation = FALSE;		/* Stop operation after that line */
+		} else if (!skipLine && !isCompleteLine(currLine)) {
 			/* Current line is longer than maximum allowed
 			 * Skip to next and release memory */
 			free(currLine);
@@ -100,6 +100,7 @@ void secondPass() {
 		/* if it is a symbol declaration - skip to next word in line */
 
 		if (!skipLine && isSymbol(word)) {
+			free(word);
 			word = getWord(currLine); /* Get next word in line to process*/
 			if (!word) {
 				/* No more words in line -> label in empty line
@@ -134,11 +135,11 @@ void secondPass() {
 				 * and mark them as entry. */
 				procEntry2(currLine);
 
-				/* Mark global variable for existance of entries in the program */
+				/* Mark global variable for existence of entries in the program */
 				entryExist = TRUE;
 				break;
 			case EXTERN:
-				/* Mark global variable for existance of externals in the program */
+				/* Mark global variable for existence of externals in the program */
 				externExist = TRUE;
 				break;
 
@@ -158,9 +159,13 @@ void secondPass() {
 	} /* End of for loop */
 } /* End of secondPass function */
 
+/* procEntry2:		Process entry line in second pass: check if parameters
+ * are exist internal symbols and mark symbol as entry.
+ */
 void procEntry2(line *l) {
 	char *s; /* Temporary string */
 	error err; /* Temporary error code */
+	int operation; /* Loop exit variable */
 
 	if (checkComma(l)) { /* Check for comma before parameters */
 		lerror(ERR_COMMA_BEFOR_PARAM, l->lineNum);
@@ -177,32 +182,33 @@ void procEntry2(line *l) {
 		free(s);
 	}
 
-	for (;;) { /* Get more entry parameters */
+	/* Get more entry parameters if exist */
+	operation = TRUE;
+	while (operation) {
 		if (checkComma(l)) {
 			l->i++;
-			if ((s = getParameter(l))) { /* Received parameter seperated with comma */
+			if ((s = getParameter(l))) { /* Received parameter separated with comma */
 				if ((err = checkEntry(s)) != NON_ERROR) /* Mark as entry if valid */
 					lerror(err, l->lineNum); /* otherwise print error code */
 				free(s);
 			} else { /* Received comma without parameter */
 				lerror(ERR_MISS_PARAM, l->lineNum);
-				break;
+				operation = FALSE; /* Exit from loop */
 			}
-		} else if ((s = getParameter(l))) { /* Recieved parameter without seperating comma */
-			lerror(ERR_COMMA_EXPECTED, l->lineNum);
-			if ((err = checkEntry(s)) != NON_ERROR) /* Mark as entry if valid */
-				lerror(err, l->lineNum); /* otherwise print error code */
-			free(s);
-		} else { /* no more input in line */
-			break;
+		} else { /* No comma */
+			if ((s = getParameter(l))) { /* Received parameter without separating comma */
+				lerror(ERR_COMMA_EXPECTED, l->lineNum);
+				free(s);
+			}
+			operation = FALSE; /* Exit from loop */
 		}
 	}
 }
 
 /* procCommand2: Processing command line in second pass:
- * Check for varaible existance and add externals to externals table
- * 
- * All line validity checks are done again like in first pass because we neet
+ * Check for variable existence and add externals to externals table
+ *
+ * All line validity checks are done again like in first pass because we need
  * to maintain the instructions counter (IC).
  * IC is used to update externals table.
  */
@@ -213,6 +219,8 @@ void procCommand2(line *l, char *word) {
 	symbol *sym;
 	int addtionalWordNum;
 	instruction tempInst;
+
+	op1 = op2 = NULL;
 
 	/* Get command (struct) from input string 'word' */
 	c = getCommand(word);
@@ -234,7 +242,7 @@ void procCommand2(line *l, char *word) {
 		if (checkComma(l))
 			l->i++;
 
-		op1 = getOperand(l);
+		op1 = getOperand(l, FALSE);
 		/* Continue only if line has been processed in first pass */
 		if (op1 && (op1->type != EMPTY)
 				&& (checkCommandAddType(c, op1, NULL) == NON_ERROR)
@@ -245,7 +253,8 @@ void procCommand2(line *l, char *word) {
 				if ((sym = checkVarExist(op1->data))) {
 					if (sym->type == EXTERN) {
 						addtionalWordNum = 1; /* First additional word of instruction */
-						addExternal(sym, IC + addtionalWordNum + MEMORY_START_ADDRESS);
+						addExternal(sym,
+								IC + addtionalWordNum + MEMORY_START_ADDRESS);
 					}
 				} else {
 					/* Variable does not exist */
@@ -264,7 +273,7 @@ void procCommand2(line *l, char *word) {
 		if (checkComma(l))
 			l->i++;
 
-		op1 = getOperand(l);
+		op1 = getOperand(l, FALSE);
 		/* Continue only if line has been processed in first pass */
 		if ((op1) && (op1->type != EMPTY)) {
 
@@ -272,18 +281,19 @@ void procCommand2(line *l, char *word) {
 			if (checkComma(l))
 				l->i++;
 
-			op2 = getOperand(l);
+			op2 = getOperand(l, FALSE);
 			/* Continue only if line has been processed in first pass */
 			if (op2 && (op2->type != EMPTY)
 					&& (checkCommandAddType(c, op1, op2) == NON_ERROR)
 					&& (checkEOL(l) == NON_ERROR)) {
 
-				/* Check for vaiables existance and if externals */
+				/* Check for variables existence and if externals */
 				if ((op1->type & LABEL_ADD)) { /* If is direct or struct addressing type */
 					if ((sym = checkVarExist(op1->data))) {
 						if (sym->type == EXTERN) {
 							addtionalWordNum = 1; /* First additional word of instruction */
-							addExternal(sym, IC + addtionalWordNum + MEMORY_START_ADDRESS);
+							addExternal(sym,
+									IC + addtionalWordNum + MEMORY_START_ADDRESS);
 						}
 					} else {
 						/* Variable does not exist */
@@ -300,7 +310,8 @@ void procCommand2(line *l, char *word) {
 							else
 								addtionalWordNum = 2; /* Second additional word of instruction */
 
-							addExternal(sym, IC + addtionalWordNum + MEMORY_START_ADDRESS);
+							addExternal(sym,
+									IC + addtionalWordNum + MEMORY_START_ADDRESS);
 						}
 					} else {
 						/* Variable does not exist */
@@ -316,54 +327,16 @@ void procCommand2(line *l, char *word) {
 		break;
 
 	} /* End switch */
+
+	/* Memory release if need */
+		if(op1)
+			freeOperand(op1);
+		if(op2)
+			freeOperand(op2);
+
 } /* End of function: procCommand2 */
 
-/* checkInstArr: Check instrutions in instArr if their operands are valid and exist
- *                      Also add externals to externals table
- */
-void checkInstArr() {
-	int i, addtionalWordNum;
-	symbol *symb;
 
-	for (i = 0; i < instIndex; i++) {
-
-		if (instArr[i].op1) { /* Check only if operand exist */
-			if (!checkOperandName(instArr[i].op1)) /* Check if varaiable exist in symbol's table */
-				lerror(ERR_VAR_NOT_EXIST, instArr[i].lineNum); /* Error if not exist */
-			else if (instArr[i].op1->type == DIRECT) { /* If direct addresing type - check if is external */
-				symb = symLookup(instArr[i].op1->data);
-				if (symb->address == EXTERNAL_ADDRESS) { /* if is external, add to externals table */
-					addtionalWordNum = 1; /* Number of additional word is 1 for first operand */
-					addExternal(symb,
-							(instArr[i].memAddress) + addtionalWordNum);
-				}
-			}
-
-			/* Same check for second operand */
-			if (instArr[i].op2) {
-				if (!checkOperandName(instArr[i].op2))
-					lerror(ERR_VAR_NOT_EXIST, instArr[i].lineNum);
-				else if (instArr[i].op2->type == DIRECT) { /* If direct addresing type - check if is external */
-					symb = symLookup(instArr[i].op2->data);
-					if (symb->address == EXTERNAL_ADDRESS) { /* if is external, add to externals table */
-
-						/* Additional word number calculate */
-						if (instArr[i].op1->type == STRUCT_ADD)
-							/* First operand addressing type is struct and it has 2 additional words */
-							addtionalWordNum = 3;
-						else
-							/* Number of additional word is 2 for second operand if  first operand is not struct */
-							addtionalWordNum = 2;
-
-						/* Add external to table */
-						addExternal(symb,
-								(instArr[i].memAddress) + addtionalWordNum);
-					}
-				}
-			}
-		}
-	}
-}
 
 /* checkVarExist:  Check if s exist in symbols table and returns it's symbol */
 symbol *checkVarExist(char *s) {
@@ -374,7 +347,7 @@ symbol *checkVarExist(char *s) {
 		n = strlen(s);
 		s[n - 2] = '\0'; /* Hide struct member to get 'pure' name */
 		sym = symLookup(s);
-		s[n - 2] = '.'; /* Retreive full data */
+		s[n - 2] = '.'; /* Retrieve full data */
 	} else
 		sym = symLookup(s);
 

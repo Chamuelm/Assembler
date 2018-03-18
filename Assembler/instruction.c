@@ -3,15 +3,13 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains instruction, operand and operator threatment 
+ * Contains instruction, operand and operator treatment
  * 
  */
 #include "include/assembler.h"
 #include <stdlib.h>
 #include <string.h>
 
-/***************** Internal Functions Declerations ********************/
-void freeOperand(operand *op);
 
 /********************** Functions Definitions *************************/
 
@@ -48,36 +46,6 @@ void freeInstArr() {
     }
 }
 
-/* checkOperandname: returns TRUE if op name is existing variable */
-int checkOperandName(operand *op) {
-    int n, result;
-    
-    if (!op)    /* No operator */
-        result = TRUE;
-    else if (op->type == DIRECT) {
-        /* Check if operand name is existing variable */
-        if (symLookup(op->data))
-            result = TRUE;
-        else
-            result = FALSE;
-    } else if (op->type == STRUCT_ADD) {
-        /* If struct - ommit struct member number to search the right lable */
-        n = strlen(op->data);
-        op->data[n-2] = '\0';
-        
-        /* Check if struct name is existing variable */
-        if (symLookup(op->data))
-            result = TRUE;
-        else
-            result = FALSE;
-        
-        op->data[n-2] = '.'; /* Retrived struct's member number */
-    } else
-        result = TRUE;
-    
-   return result; 
-}
-
 
 /* calcInstructions:	Calculate number of instructions
  * based on operators left in line
@@ -92,7 +60,7 @@ int calcInstructions(instruction *inst) {
         op2Type = inst->op2->type;
     
     /*
-     * Increment i by type of addresing type:
+     * Increment i by type of addressing type:
      *	All but struct required 1 additional word
      *	Struct required 2 additional words.
      *	If both are REGISTER they can share the same word

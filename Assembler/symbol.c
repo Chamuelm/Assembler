@@ -3,7 +3,7 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains symbols table decleration and functions related.
+ * Contains symbols table declaration and functions related.
  * Symbols table is a hash table with the size HASHSIZE which is
  * declared in assembler.h file
  * 
@@ -51,7 +51,7 @@ symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType ) {
         
     } else	/* Symbol already exist! */
         return NULL;
-    return np; /* symboll added fine */
+    return np; /* symbol added fine */
 }
 
 /* removeSymbolPtr: remove sym from symbols table */
@@ -103,7 +103,7 @@ void symTableRelease() {
 
 /* freeSymbol:	free symbol and all symbols attached to it. */
 void freeSymbol(symbol *s) {
-    if (s->next != NULL) {		/* If chained to more symbols recursivly free them */
+    if (s->next != NULL) {		/* If chained to more symbols recursively free them */
         freeSymbol(s->next);
     }
     free(s);
@@ -123,7 +123,7 @@ void symbolsAddressAdd(int x) {
  * Add MEMORY_START_ADDRESS to all non-external symbols.
  * and continue to chained symbols */
 void addressUpdate(symbol *s, int x) {
-    if (s->next != NULL)		/* If chained to more symbols recursivly update them as well */
+    if (s->next != NULL)		/* If chained to more symbols recursively update them as well */
         addressUpdate(s->next, x);
     
     /* Adds to internals variables */
@@ -133,6 +133,7 @@ void addressUpdate(symbol *s, int x) {
     	s->address += MEMORY_START_ADDRESS;
 }
 
+/* Print symbols table. Used for debugging */
 void printSymTable() {
 	int i;
 
@@ -143,6 +144,7 @@ void printSymTable() {
 	}
 }
 
+/* Print symbol sym. Utility function for printSyTable */
 void printSym(symbol *sym) {
 	char code[3];
 

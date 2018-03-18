@@ -3,7 +3,7 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains function declerations of secondPass.c
+ * Contains function declarations of secondPass.c
  * 
  */
 

@@ -47,7 +47,7 @@ error checkSymbol(char *symbol) {
 
 
 
-/* getCommand: check if cmd is known CPU commands.
+/* getCommand: check if comm is known CPU commands.
  * Returns pointer to command or NULL if unknown command
  */
 operatorNode *getCommand(char *comm) { 
@@ -157,12 +157,12 @@ error isValidNum(char *s) {
     }
     
     /* Check if there is another parameter
-     attached without ',' seperating */
+     attached without ',' separating */
     if (s[i] == ' ' || s[i] == '\t') {
         /* Skip white spaces */
         while(s[i] == ' ' || s[i] == '\t')
             i++;
-        if (s[i] != '\0')   /* found not comma-seperated parameter */
+        if (s[i] != '\0')   /* found not comma-separated parameter */
             return (ERR_COMMA_BEFOR_PARAM);
     }
     

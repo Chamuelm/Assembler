@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-/***************** Internal Functions Declerations ********************/
+/***************** Internal Functions Declarations ********************/
 void createObjectsFile();
 void fAddLine(FILE *fileP, char *str1, char *str2);
 void fAddInst(FILE *fileP, instruction *x);
@@ -31,6 +31,7 @@ FILE *entFileOpen();
 FILE *objFileOpen();
 
 
+/********************** Functions Definitions *************************/
 
 /* Create output files of active file */
 void createOutputFiles() {
@@ -65,9 +66,9 @@ void createObjectsFile() {
     
     /* Add data to file */
     for (i=0; i<DC; i++) {
-        /* Address to base-32 string representaion */
+        /* Address to base-32 string representation */
         intToBase32STR(MEMORY_START_ADDRESS+IC+i, base32String1);
-        /* Data to base-32 string representaion */
+        /* Data to base-32 string representation */
         intToBase32STR(dataArr[i], base32String2);
         
         /* Add to file */
@@ -104,7 +105,6 @@ void intToBase32STR(int num, char *dest) {
 void fAddLine(FILE *fileP, char *str1, char *str2) {
     if (fprintf(fileP, "%s\t%s\n", str1, str2) < 0) {
         fprintf(stderr, "Error while writing to file: %s", strerror(errno));
-        exit(EXIT_FAILURE);
     }
 }
 
@@ -115,7 +115,7 @@ void fAddLine(FILE *fileP, char *str1, char *str2) {
 void fAddInst(FILE *fileP, instruction *x) {
     
     
-    switch (x->cmd->operatorsNum) { /* Devide prlocess by number of operators */
+    switch (x->cmd->operatorsNum) { /* Divide process by number of operators */
         case 0:
             fAddInst0op(fileP, x);
             break;
@@ -140,10 +140,10 @@ void fAddInst0op(FILE *fileP, instruction *x) {
 void fAddInst1op(FILE *fileP, instruction *x) {
     int n;
     
-    /***** Add first word: command representaion *****/
+    /***** Add first word: command representation *****/
     fAddCommandWord(fileP, x);    
     
-    /***** Add additional words by oprand addressing type *****/
+    /***** Add additional words by operand addressing type *****/
     
     switch(x->op1->type) {
 	case IMMEDIATE:
@@ -164,7 +164,7 @@ void fAddInst1op(FILE *fileP, instruction *x) {
             (x->op1->data)[n-2] = '\0'; /* Ignore struct member */
             fAddDirectWord(fileP, x->op1->data, x->memAddress+1);
             
-            (x->op1->data)[n-2] = '.'; /* Retrive struct member data */
+            (x->op1->data)[n-2] = '.'; /* Retrieve struct member data */
             fAddImmediateWord(fileP, ((x->op1->data)+(n-1)), x->memAddress+2);
             /* +(n-1) to skip to struct member,
              * addressOffset+2 - this is the 2nd additional word */
@@ -180,7 +180,7 @@ void fAddInst2op(FILE *fileP, instruction *x) {
     int n;
     int wordNum = 1;        /* Address offset from command word memory location */
     
-    /***** Add first word: command representaion *****/
+    /***** Add first word: command representation *****/
     fAddCommandWord(fileP, x);    
     
     /***** Add additional words for source operand *****/
@@ -206,7 +206,7 @@ void fAddInst2op(FILE *fileP, instruction *x) {
             fAddDirectWord(fileP, x->op1->data, x->memAddress+wordNum);
             wordNum++;  /* Increment word number - struct address has 2 additional words */
             
-            (x->op1->data)[n-2] = '.'; /* Retrive struct member data */
+            (x->op1->data)[n-2] = '.'; /* Retrieve struct member data */
             fAddImmediateWord(fileP, ((x->op1->data)+(n-1)), x->memAddress+wordNum);
             /* +(n-1) to skip to struct member,
              * addressOffset+2 - this is the 2nd additional word */
@@ -215,7 +215,7 @@ void fAddInst2op(FILE *fileP, instruction *x) {
             break;
     }
     wordNum++; /* Increment word number for the next operand 
-                * address's addistional words */
+                * address's Additional words */
     
     /***** Add additional words for destination operand *****/
     switch(x->op2->type) {
@@ -236,7 +236,7 @@ void fAddInst2op(FILE *fileP, instruction *x) {
             fAddDirectWord(fileP, x->op2->data, x->memAddress+wordNum);
             wordNum++;  /* Increment word number - struct address is 2 additional words */
             
-            (x->op2->data)[n-2] = '.'; /* Retrive struct member data */
+            (x->op2->data)[n-2] = '.'; /* Retrieve struct member data */
             fAddImmediateWord(fileP, ((x->op2->data)+(n-1)), x->memAddress+wordNum);
             /* +(n-1) to skip to struct member,
              * addressOffset+2 - this is the 2nd additional word */
@@ -262,7 +262,7 @@ void fAddCommandWord(FILE *fileP, instruction *x) {
     /* Add opcode representation to instCode*/
     wordCode = x->cmd->opcode << CODE_OPCODE_LOC;
     
-    /* Add addressing types representations yo instCode */    
+    /* Add addressing types representations to instCode */
     switch (x->cmd->operatorsNum)
     {
         case 0:
@@ -274,7 +274,7 @@ void fAddCommandWord(FILE *fileP, instruction *x) {
             wordCode |= (getAddressingTypeCode(x->op1->type)<<CODE_DEST_OP_LOC);
             break;
         case 2:
-            /* Add addressing types representation yo instCode */
+            /* Add addressing types representation to instCode */
             wordCode |= (getAddressingTypeCode(x->op1->type)<<CODE_SRC_OP_LOC);
             wordCode |= (getAddressingTypeCode(x->op2->type)<<CODE_DEST_OP_LOC);
     }
@@ -363,7 +363,7 @@ void fAddDirectWord(FILE *fileP, char *data, int address) {
 
 
 /* 
- * getAddressingTypeCode: Return numeric representation of addresing type
+ * getAddressingTypeCode: Return numeric representation of addressing type
  */
 int getAddressingTypeCode(enum addressingType type) {
     switch (type) {
@@ -392,7 +392,7 @@ void createEntFile() {
     
     ent = entFileOpen();
     if (ent) {
-        /* Scan symbols table and add entries to file when occure */
+        /* Scan symbols table and add entries to file when occur */
         for (i=0; i<HASHSIZE; i++) {
             if(symTable[i])
                 fAddEnt(symTable[i], ent);
@@ -402,7 +402,7 @@ void createEntFile() {
     }
 }
 
-/* fAddEnt:  Scan symbols table and add  entries to ent when occure */
+/* fAddEnt:  Scan symbols table and add  entries to ent when occur */
 void fAddEnt(symbol *sym, FILE *ent) {
     char addressSTR[BASE_32_LEN+1]; /* +1 for '\0' */
     

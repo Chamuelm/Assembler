@@ -3,7 +3,7 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains constants for use in functions  
+ * Contains constants for use in program
  * 
  */
 
@@ -12,6 +12,7 @@
 
 /*
  * Constant array contain error messages to use in lerror and lwarning functions.
+ * Error codes are indexes of this array and defined in errors.h
  */
 const char *errorsTab[] = {
     "Invalid comma before parameter", 
@@ -56,24 +57,24 @@ const char *errorsTab[] = {
  * 	SrcAdd		Source addressing types allowed (Described in enum allowedAddTypes in assembler.h)
  * 	DestAdd		Destination addressing types allowed
  *  */
-/*  Name        Opcode  Operands   SrcAdd  DestAdd	  */
 const operatorNode CPUCommands[] = {
-    {"mov",0,		2,          ALL_ADD,        REG_ADD},
-    {"cmp",     1,		2,          ALL_ADD,        ALL_ADD},
-    {"add",        2,		2,          ALL_ADD,        REG_ADD},
-    {"sub",	3,		2,          ALL_ADD,        REG_ADD},
-    {"not",	4,		1,          NONE,           REG_ADD},
-    {"clr",	5,		1,          NONE,           REG_ADD},
-    {"lea",	6,		2,          LABEL_ADD,      REG_ADD},
-    {"inc",	7,		1,          NONE,           REG_ADD},
-    {"dec", 	8,		1,          NONE,           REG_ADD},
-    {"jmp", 	9,		1,          NONE,           REG_ADD},
-    {"bne", 	10,		1,          NONE,           REG_ADD},
-    {"red",	11,		1,          NONE,           REG_ADD},
-    {"prn",	12,		1,          NONE,           ALL_ADD},
-    {"jsr",	13,		1,          NONE,           REG_ADD},
-    {"rts",	14,		0,          NONE,           NONE},
-    {"stop",	15,		0,          NONE,           NONE}
+/*  Name		Opcode	Operands	SrcAdd			DestAdd	  */
+    {"mov",	0,			2,				ALL_ADD,		REG_ADD},
+    {"cmp", 1,			2,        ALL_ADD,  	ALL_ADD},
+    {"add", 2,			2,        ALL_ADD,  	REG_ADD},
+    {"sub",	3,			2,        ALL_ADD,    REG_ADD},
+    {"not",	4,			1,        NONE,       REG_ADD},
+    {"clr",	5,			1,        NONE,       REG_ADD},
+    {"lea",	6,			2,        LABEL_ADD,  REG_ADD},
+    {"inc",	7,			1,        NONE,       REG_ADD},
+    {"dec", 8,			1,        NONE,       REG_ADD},
+    {"jmp",	9,			1,        NONE,       REG_ADD},
+    {"bne",	10,			1,        NONE,       REG_ADD},
+    {"red",	11,			1,        NONE,       REG_ADD},
+    {"prn",	12,			1,        NONE,       ALL_ADD},
+    {"jsr",	13,			1,        NONE,       REG_ADD},
+    {"rts",	14,			0,        NONE,       NONE},
+    {"stop",15,			0,        NONE,       NONE}
 };
 
 /*
@@ -90,7 +91,7 @@ const char *keywordTab[] = {
     NULL
 };
 
-/* Charcters of 'Strange Base-32' */
+/* Characters of 'Strange Base-32' */
 const char base32Digit[] = {'!', '@', '#', '$', '%', '^', '&', '*', '<', '>',
 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
 'p', 'q', 'r', 's', 't', 'u', 'v' };

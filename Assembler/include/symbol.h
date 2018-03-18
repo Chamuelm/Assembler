@@ -3,7 +3,7 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains function declerations of symbol.c
+ * Contains function declarations of symbol.c
  * 
  */
 #ifndef ASSEMBLER_H
@@ -23,13 +23,13 @@ struct symbol_s {
     symbol *next;                   /* Next symbol in chain */
 };
 
-/******************** Extern symbol table decleration ***********************/
+/******************** Extern symbol table declaration ***********************/
 #ifndef SYMBOL_C
 #define SYMBOL_C 
 extern symbol *symTable[HASHSIZE];
 #endif
 
-/********************* External Functions Declerations ************************/
+/********************* External Functions Declarations ************************/
 
 symbol *symLookup(char *s);
 symbol *addSymbol(char *newName, int newAddress, enum lineTypes newType);

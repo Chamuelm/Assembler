@@ -3,7 +3,7 @@
  * Author:  Moshe Hamiel
  * ID:      308238716
  *
- * Contains external table decleration and functions related.
+ * Contains external table declaration and functions related.
  * Externals table is a hash table with the size HASHSIZE which is
  * declared in assembler.h file
  * 
@@ -12,10 +12,10 @@
 #include "include/assembler.h"
 #include <stdlib.h>
 
-/***************** Externals table decleration *****************/
+/***************** Externals table declaration *****************/
 externNode *extTable[HASHSIZE];
 
-/***************** Internal functions decleration *****************/
+/***************** Internal functions declaration *****************/
 void freeExternal(externNode *e);
 
 /* addExternal:	add new external to externals table */
@@ -45,21 +45,22 @@ void extTableInit() {
             extTable[i] = NULL;
 }
 
-/*	Release externals table */
+/*	Release memory of externals in externals table */
 void extTableRelease() {
     int i;
     
     for(i=0; i < HASHSIZE; i++) {
         if(extTable[i] != NULL) {
-            freeExternal(extTable[i]);
+            freeExternal(extTable[i]); /* Recursive function */
             extTable[i] = NULL;
         }
     }
 }
 
-/* freeExternal:	free external and all externals chained to it. */
+/* freeExternal:	free external and all externals chained to it.
+ * Utility function for extTableRelease */
 void freeExternal(externNode *e) {
-    if (e->next != NULL) {		/* If chained to more external recursivly free them */
+    if (e->next != NULL) {		/* If chained to more external recursively free them */
         freeExternal(e->next);
     }
     free(e);

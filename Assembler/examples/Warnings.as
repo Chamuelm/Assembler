@@ -101,7 +101,7 @@ W5#:	.data 22
 	.string "banana
 
 ; Missing string
-	.string 12
+	.string 
   
 ; String is not in qoutation mark
 	.string banana

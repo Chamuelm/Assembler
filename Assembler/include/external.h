@@ -21,20 +21,20 @@
  */
 typedef struct externNode_s externNode;
 struct externNode_s {
-    symbol *sym;        /* Pointer to external symbol in symbol table */
-    int address;           /* Address it is used in current as file */
-    externNode *next;     /* Pointer to next external in chain */
+    symbol *sym;				/* Pointer to external symbol in symbol table */
+    int address;				/* Address it is used in current as file */
+    externNode *next;		/* Pointer to next external in chain */
 };
 
 
 
-/******************** Extern symbol table decleration ***********************/
+/******************** Extern symbol table declaration ***********************/
 #ifndef EXTERNAL_C
 #define EXTERNAL_C 
 extern struct externNode_s *extTable[HASHSIZE];
 #endif
 
-/********************* External Functions Declerations ************************/
+/********************* External Functions Declarations ************************/
 externNode *addExternal(symbol *symToAdd, int addressToAdd);
 void extTableInit();
 void extTableRelease();

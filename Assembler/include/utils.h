@@ -12,6 +12,8 @@
 
 #include "assembler.h"
 
+
+/********************* External Functions Declarations ************************/
 error checkSymbol(char *symbol);
 operatorNode *getCommand(char *cmd);
 int isKeyword(char *s);
