@@ -10,11 +10,11 @@ ent file – File for entry labels in original code – for access from external
 ext file – Externals variables to be loaded by the linker in run-time  
 The final mahcine code is coded with a spacial 32-base code.  
 
-##Highlights:
-*Design and create a full working software.
-*Input integrity verification.
-*Working with files.
-*Working with short schedule.
+## Highlights:
+* Design and create a full working software.
+* Input integrity verification.
+* Working with files.
+* Working with short schedule.
 
-##Links:
-*[Project Definition](../project_definition.pdf)
+## Links:
+* [Project Definition](../project_definition.pdf)
