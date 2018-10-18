@@ -29,6 +29,6 @@ The final mahcine code is coded with a spacial 32-base code.
 * Example output entry file  
 	![](./Example%20photos/Assembler-entry.png "Example output entry file")  
 * Example warning (1)
-	![](./Example%20photos/assembler-Warnings1.png "Example warning")  
+	![](./Example%20photos/Assembler-Warnings1.png "Example warning")  
 * Example warning (2)
-	![](./Example%20photos/assembler-Warnings2.png "Example warning")  
+	![](./Example%20photos/Assembler-Warnings2.png "Example warning")  
