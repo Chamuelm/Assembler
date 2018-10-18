@@ -17,4 +17,18 @@ The final mahcine code is coded with a spacial 32-base code.
 * Working with short schedule.
 
 ## Links:
-* [Project Definition](../project_definition.pdf)
+* [Project Definition](./project-definition.pdf)
+
+## Screenshots:  
+* Example input file  
+	![](./Example%20photos/assembler-input.png "Example input file")  
+* Example output object file  
+	![](./Example%20photos/assembler-ps.png "Example output object file")  
+* Example output ext file  
+	![](./Example%20photos/assembler-ext.png "Example output ext file")  
+* Example output entry file  
+	![](./Example%20photos/Assembler-entry.png "Example output entry file")  
+* Example warning (1)
+	![](./Example%20photos/assembler-Warnings1.png "Example warning")  
+* Example warning (2)
+	![](./Example%20photos/assembler-Warnings2.png "Example warning")  
